@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <AccCtrl.h>
 
 struct Polinomial //cringenaming
 {
