@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include <AccCtrl.h>
+#include <string.h>
 
 struct Polinomial //cringenaming
 {
@@ -27,19 +27,18 @@ enum Sol
 }; 
 
 
-int SolveLinear     (double b, double c, double *x1);                              //поиск корня в случае нулевого старшего коэффициента квадратного уравнения
-int SolveKv        (struct Polinomial*);                                          //функция поиска корней квадратного уравнения  с ненулевым старшим коэффициентом
-void PrintAns      (struct Polinomial);                                           //функция выводит ответы
-int ParsMain       (struct Polinomial*);                                          //парсинг пробелов и букв
-void PrintTech     (int techCase);                                                //вывод технических сообщений
-double ParsNum     (char Part [], int count, int *shift);                         //парсинг цифр
-void SignChange    (double *a, int minus);                                        //при необходимости делает коэффициент отрицательным
-int DeliteSpase    (char inString[]);                                             //удаление пробелов
-void SeparatePol   (char inString [], char lEntPart [], char rEntPart []);
-double* ChooseCoef (char selCoef [], double *a, double *b, double *c, int *isAC); //выбирает нужный коэф для последующей обработки
-int ParsToCoef     (char EntPart [], struct Polinomial *parsPol);
-void PrintStruc    (struct Polinomial);
-int isDoubleZero   (double iszero);
+int SolveLinear          (double b, double c, double *x1);                              //поиск корня в случае нулевого старшего коэффициента квадратного уравнения
+int SolveKv              (struct Polinomial*);                                          //функция поиска корней квадратного уравнения  с ненулевым старшим коэффициентом
+void PrintAns            (struct Polinomial);                                           //функция выводит ответы
+int ParseMain            (struct Polinomial*);                                          //парсинг пробелов и букв
+void PrintTech           (int techCase);                                                //вывод технических сообщений
+double ParseNum          (char Part [], int count, int *shift);                         //парсинг цифр
+int DeliteSpase          (char inString[]);                                             //удаление пробелов
+void SeparatePol         (char inString [], char lEntPart [], char rEntPart []);
+double* ChooseCoef       (char isX, char isExp, double *a, double *b, double *c, int *isA);     //выбирает нужный коэф для последующей обработки
+int ParseToCoef          (char EntPart [], struct Polinomial *parsPol);
+void PrintStructPolinom  (struct Polinomial);
+int isDoubleZero         (double iszero);
 
 //функции для теста
 int SolverTest                 (struct Polinomial testPolRef);
@@ -76,7 +75,7 @@ int main ()
 
     BufferClean ();
 
-    if(!ParsMain (&mainPol))
+    if(!ParseMain (&mainPol))
     {
         return 0;
     }
@@ -85,7 +84,7 @@ int main ()
     PrintAns (mainPol);            //запуск вывода ответа
 }
 
-void PrintStructPolinm (struct Polinomial printingStruc)
+void PrintStructPolinom (struct Polinomial printingStruc)
 {
     printf ("a = %lg, b = %lg, c = %lg\n", printingStruc.aP, printingStruc.bP, printingStruc.cP);
     printf ("x1 = %lg, x2 = %lg\n", printingStruc.x1, printingStruc.x2);
@@ -202,7 +201,7 @@ void PrintTech (int techCase)
 
 
 //парсинг коэффициентов
-int ParsMain (struct Polinomial *mainPol)
+int ParseMain (struct Polinomial *mainPol)
 {
     assert (mainPol != NULL);
 
@@ -225,8 +224,8 @@ int ParsMain (struct Polinomial *mainPol)
     struct Polinomial leftPol = {.aP = 0, .bP = 0, .cP = 0, .Sign = 1};
     struct Polinomial rightPol = {.aP = 0, .bP = 0, .cP = 0, .Sign = -1};
 
-    nParsedCoef += ParsToCoef (lEntPart, &leftPol);
-    nParsedCoef += ParsToCoef (rEntPart, &rightPol);
+    nParsedCoef += ParseToCoef (lEntPart, &leftPol);
+    nParsedCoef += ParseToCoef (rEntPart, &rightPol);
     
     (*mainPol).aP = leftPol.aP + rightPol.aP;
     (*mainPol).bP = leftPol.bP + rightPol.bP;
@@ -237,7 +236,7 @@ int ParsMain (struct Polinomial *mainPol)
 }
 
 
-int ParsToCoef (char EntPart [], struct Polinomial *parsPol)
+int ParseToCoef (char EntPart [], struct Polinomial *parsPol)
 {
     assert (parsPol != NULL);
 
@@ -247,7 +246,8 @@ int ParsToCoef (char EntPart [], struct Polinomial *parsPol)
 
     int count = 0;
     
-    char selCoef [2] = {' ', ' '};
+    char isX = ' ';
+    char isExp = ' ';
 
     while (EntPart [count] != 0)     
     { 
@@ -258,11 +258,11 @@ int ParsToCoef (char EntPart [], struct Polinomial *parsPol)
         }
         else if (isdigit(EntPart [count]))
         {
-            double difference = ParsNum (EntPart, count, &shift);
+            double difference = ParseNum (EntPart, count, &shift);
             count += shift;
-            selCoef [0] = EntPart [(count)]; //х или не х
-            selCoef [1] = EntPart [(count + 1)]; //^ или не ^
-            double *coefAdress = ChooseCoef (selCoef, &(*parsPol).aP, &(*parsPol).bP, &(*parsPol).cP, &isA);
+            isX = EntPart [(count)]; //х или не х
+            isExp = EntPart [(count + 1)]; //^ или не ^
+            double *coefAdress = ChooseCoef (isX, isExp, &(*parsPol).aP, &(*parsPol).bP, &(*parsPol).cP, &isA);
 
             if (isA == 1) //смена x^2 на x^w для избежания ошибок парсинга
             {
@@ -294,9 +294,9 @@ int ParsToCoef (char EntPart [], struct Polinomial *parsPol)
         }
         else //x или x^2 без коэффициента
         {
-            selCoef [0] = EntPart [(count)]; //х или не х
-            selCoef [1] = EntPart [(count + 1)]; //^ или не ^
-            double *coefAdress = ChooseCoef (selCoef, &(*parsPol).aP, &(*parsPol).bP, &(*parsPol).cP, &isA);
+            isX = EntPart [(count)]; //х или не х
+            isExp = EntPart [(count + 1)]; //^ или не ^
+            double *coefAdress = ChooseCoef (isX, isExp, &(*parsPol).aP, &(*parsPol).bP, &(*parsPol).cP, &isA);
 
             if (isA)
             {
@@ -319,8 +319,23 @@ int DeliteSpase (char inString[])
     int countString = 0;
     char takenChar = ' '; //последний взятый чар
 
+    const char *allowed = "0123456789.,x^=+- ";
+
     while (takenChar != EOF && takenChar != '\n')
     { 
+        if (strchr (allowed, takenChar) == NULL)
+        {
+            if (countString != 0)
+            {
+                printf (RED"ERROR! Unsupported symbol \'%c\' after %c"RESET, takenChar, inString [countString - 1]);
+                abort ();
+            }
+            else
+            {
+                printf (RED"ERROR! First symbol is unsupported"RESET);
+            }
+        }
+
         if (takenChar == ' ')
         {
             if (countString > 0) //проверка на ошибку отсутствия знака
@@ -332,7 +347,9 @@ int DeliteSpase (char inString[])
                 }
                 inString[countString] = takenChar; //сохранение символа после пробела
                 char charAftSpc = inString[countString];
-                
+                countString++; //не было, но как будто нужно. стоит разобраться
+                takenChar = getchar(); //не было, но как будто нужно. стоит разобраться
+
                 if ((charBefSpc != '-' && charBefSpc != '+' && charBefSpc != '=') && (charAftSpc != '-' && charAftSpc != '+' && charAftSpc != '=' && charAftSpc != 0))
                 {
                     PrintTech(NoSignErr);
@@ -352,6 +369,7 @@ int DeliteSpase (char inString[])
             takenChar = getchar();
         }
     }
+    return 1;
 }
 
 
@@ -393,7 +411,7 @@ void SeparatePol (char inString [], char lEntPart [], char rEntPart [])
 
 
 //парсинг цифр
-double ParsNum ( char Part [], int count, int *shift)
+double ParseNum ( char Part [], int count, int *shift)
 {
     assert (shift != NULL);
 
@@ -429,19 +447,23 @@ double ParsNum ( char Part [], int count, int *shift)
 }
 
 
-double* ChooseCoef (char selCoef[], double *a, double *b, double *c, int *isA)
+double* ChooseCoef (char isX, char isExp, double *a, double *b, double *c, int *isA)
 {
     assert (a != NULL);
     assert (b != NULL);
     assert (c != NULL);
     assert (isA != NULL);
 
-    if (selCoef [0] == 'x')
+    if (isX == 'x')
     {
-        if (selCoef [1] == '^')
+        if (isExp == '^')
         {
             *isA = 1;
             return a;
+        }
+        if (isdigit (isExp))
+        {
+            printf (RED"ERROR! Wrong symbol after x"RESET);
         }
         return b;
     }
@@ -619,7 +641,7 @@ void menu ()
             abort();
         }
 
-        if (isdigit(switcher) && switcher < 5) 
+        if (switcher < 5) 
         {
             printf ("how many tests you want to do?\n");
         }
