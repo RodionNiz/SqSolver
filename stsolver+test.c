@@ -101,7 +101,7 @@ int SolveLinear (double b, double c, double *x1)
     {
         if (c == 0)
         {
-            PrintTech (EntErr);
+            PrintTech (EntErr); //переделать сообщение
             return InfSol;
         }
         return 0;
@@ -321,7 +321,7 @@ int DeliteSpase (char inString[])
 
     const char *allowed = "0123456789.,x^=+- ";
 
-    while (takenChar != EOF && takenChar != '\n')
+    while (takenChar != EOF && takenChar != '\n' && takenChar != 0)
     { 
         if (strchr (allowed, takenChar) == NULL)
         {
@@ -337,7 +337,7 @@ int DeliteSpase (char inString[])
         }
 
         if (takenChar == ' ')
-        {
+        {   
             if (countString > 0) //проверка на ошибку отсутствия знака
             {
                 char charBefSpc = inString [(countString - 1)]; //символ перед пробелом
@@ -345,15 +345,20 @@ int DeliteSpase (char inString[])
                 {
                     takenChar = getchar();
                 }
+                if (takenChar == '\n')
+                {
+                    return 1;
+                }
                 inString[countString] = takenChar; //сохранение символа после пробела
+                inString [(countString + 1)] = 0;
                 char charAftSpc = inString[countString];
-                countString++; //не было, но как будто нужно. стоит разобраться
+                countString++;
                 takenChar = getchar(); //не было, но как будто нужно. стоит разобраться
 
                 if ((charBefSpc != '-' && charBefSpc != '+' && charBefSpc != '=') && (charAftSpc != '-' && charAftSpc != '+' && charAftSpc != '=' && charAftSpc != 0))
                 {
-                    PrintTech(NoSignErr);
-                    return 0;
+                    printf (RED"ERROR! No sign after \'%c\', before \'%c\'"RESET, inString [countString - 1], charAftSpc);
+                    abort ();
                 }
             }
             else  //удаление ведущих пробелов
@@ -425,7 +430,7 @@ double ParseNum ( char Part [], int count, int *shift)
         duCount++;
     }
 
-    int multiplier = pow (10, place);
+    double multiplier = pow (10, place);
 
     while ((isdigit(Part [count])  || Part [count] == ',' || Part [count] == '.') && Part [count] != 0)
     {
@@ -441,7 +446,6 @@ double ParseNum ( char Part [], int count, int *shift)
             ++*shift;
             multiplier /= 10;
         }
-        
     }
     return coef;
 }
@@ -464,6 +468,7 @@ double* ChooseCoef (char isX, char isExp, double *a, double *b, double *c, int *
         if (isdigit (isExp))
         {
             printf (RED"ERROR! Wrong symbol after x"RESET);
+            abort ();
         }
         return b;
     }
@@ -594,8 +599,17 @@ void RunSolveTestsAuto (int repeats, int kindOfTest)
 
 void RunSolveTestsManual ()
 {
-    struct Polinomial testPolRef = {.aP = 1, .bP = 2.2, .cP = 10, .nOfSol = 0};
-    SolverTest (testPolRef);
+    struct Polinomial testsPolinomsRef [3] = 
+    {
+        {.aP = 1, .bP = 2.2, .cP = 1.21, .nOfSol = 1},
+        {.aP = 0, .bP = 0, .cP = 0, .nOfSol = InfSol},
+        {.aP = 0, .bP = 0, .cP = 1, .nOfSol = 0}
+    };
+    unsigned int size = sizeof (testsPolinomsRef)/sizeof (struct Polinomial);
+    for (unsigned int i = 0; i < size; i++)
+    {
+        SolverTest (testsPolinomsRef[0]);
+    }
     abort();
 }
 
@@ -617,8 +631,9 @@ void menu ()
 {
     printf ("enter 0 if you want to solve equation\n"
             "enter 1 if you want to start tests\n");
-    int switcher = 0;
-    if (scanf ("%d", &switcher) == 0)
+    int switcher = 10;
+    scanf ("%d", &switcher);
+    if (switcher != 0 && switcher != 1)
         {
             printf (RED"INPUT ERROR!\n"RESET);
             abort();
@@ -641,22 +656,22 @@ void menu ()
             abort();
         }
 
+        int repeats = 0;
         if (switcher < 5) 
         {
             printf ("how many tests you want to do?\n");
-        }
-        int repeats = 0;
-        if (!(scanf ("%d", &repeats)))
-        {
-            printf (RED"INPUT ERROR!\n"RESET);
-            abort();
+            
+            if (!(scanf ("%d", &repeats)))
+            {
+                printf (RED"INPUT ERROR!\n"RESET);
+                abort();
+            }
         }
 
         switch (switcher)
         {
         case 0:
             RunSolveTestsAuto (repeats, 0);
-            break;
         case 1:
             RunSolveTestsAuto (repeats, 1);
         case 2:
