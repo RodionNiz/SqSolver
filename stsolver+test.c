@@ -14,6 +14,13 @@ struct Polinomial //cringenaming
 };
 
 
+struct ParseTestString 
+{
+    char *testString;
+    double aRef, bRef, cRef;
+};
+
+
 enum Tech
 {
     EntReq = -2,      //запрос ввода при парсинге
@@ -28,9 +35,9 @@ enum Sol
 
 
 int SolveLinear          (double b, double c, double *x1);                              //поиск корня в случае нулевого старшего коэффициента квадратного уравнения
-int SolveKv              (struct Polinomial*);                                          //функция поиска корней квадратного уравнения  с ненулевым старшим коэффициентом
+int SolveKv              (double a, double b, double c, double *x1, double *x2);        //функция поиска корней квадратного уравнения  с ненулевым старшим коэффициентом
 void PrintAns            (struct Polinomial);                                           //функция выводит ответы
-int ParseMain            (struct Polinomial*);                                          //парсинг пробелов и букв
+int ParseMain            (double *a, double *b, double *c);                             //парсинг пробелов и букв
 void PrintTech           (int techCase);                                                //вывод технических сообщений
 double ParseNum          (char Part [], int count, int *shift);                         //парсинг цифр
 int DeliteSpase          (char inString[]);                                             //удаление пробелов
@@ -38,7 +45,7 @@ void SeparatePol         (char inString [], char lEntPart [], char rEntPart []);
 double* ChooseCoef       (char isX, char isExp, double *a, double *b, double *c, int *isA);     //выбирает нужный коэф для последующей обработки
 int ParseToCoef          (char EntPart [], struct Polinomial *parsPol);
 void PrintStructPolinom  (struct Polinomial);
-int isDoubleZero         (double iszero);
+int IsDoubleZero         (double iszero);
 
 //функции для теста
 int SolverTest                 (struct Polinomial testPolRef);
@@ -75,12 +82,12 @@ int main ()
 
     BufferClean ();
 
-    if(!ParseMain (&mainPol))
+    if(!ParseMain (&mainPol.aP, &mainPol.bP, &mainPol.cP))
     {
         return 0;
     }
 
-    mainPol.nOfSol = SolveKv (&mainPol);           //запуск решения
+    mainPol.nOfSol = SolveKv (mainPol.aP, mainPol.bP, mainPol.cP, &mainPol.x1, &mainPol.x2);           //запуск решения
     PrintAns (mainPol);            //запуск вывода ответа
 }
 
@@ -112,46 +119,43 @@ int SolveLinear (double b, double c, double *x1)
 
 
 //функция поиска корней квадратного уравнения с ненулевым старшим коэффициентом
-int SolveKv (struct Polinomial *mainPol)
+int SolveKv (double a, double b, double c, double *x1, double *x2)
 {
-    assert (mainPol != NULL);
-    assert (isfinite ((*mainPol).aP));
-    assert (isfinite ((*mainPol).bP));
-    assert (isfinite ((*mainPol).cP));
+    assert (x1 != NULL);
+    assert (x2 != NULL);
+    assert (isfinite (a));
+    assert (isfinite (b));
+    assert (isfinite (c));
 
 
-    if (fabs ((*mainPol).aP) < ACCURACY)
+    if (IsDoubleZero (a))
     {
-        return SolveLinear ((*mainPol).bP, (*mainPol).cP, &(*mainPol).x1);
+        return SolveLinear (b, c, x1);
     }
 
-    double discriminant = (*mainPol).bP * (*mainPol).bP - 4 * (*mainPol).aP * (*mainPol).cP;
-    double a2 = (*mainPol).aP * 2;
+    double discriminant = b * b - 4 * a * c;
+    double a2 = a * 2;
+
+    if (IsDoubleZero (discriminant))
+    {
+        *x1 = -b / a2;                    
+        return 1;
+    }
 
     if (discriminant > ACCURACY)
     {
-        (*mainPol).x1 = (-(*mainPol).bP - sqrt(discriminant)) / a2;    //корни уравнения с положительным ненулевым D
-        (*mainPol).x2 = (-(*mainPol).bP + sqrt(discriminant)) / a2;
+        *x1 = (-b - sqrt(discriminant)) / a2;    //корни уравнения с положительным ненулевым D
+        *x2 = (-b + sqrt(discriminant)) / a2;
         return 2;
     }
-    else if (discriminant < -ACCURACY)
-    {
-        return 0;                   //случай с отсутствием действительных корней
-    }
-
-    (*mainPol).x1 = -(*mainPol).bP / a2;                    //discriminant = 0
-    return 1;
     
+    return 0;                   //случай с отсутствием действительных корней 
 }
 
 
-int isDoubleZero (double iszero)
+int IsDoubleZero (double iszero)
 {
-    if (fabs (iszero) < ACCURACY)
-    {
-        return 1;
-    } 
-    return 0;
+    return (fabs (iszero) < ACCURACY);
 }
 
 
@@ -201,9 +205,11 @@ void PrintTech (int techCase)
 
 
 //парсинг коэффициентов
-int ParseMain (struct Polinomial *mainPol)
+int ParseMain (double *a, double *b, double *c)
 {
-    assert (mainPol != NULL);
+    assert (a != NULL);
+    assert (b != NULL);
+    assert (c != NULL);
 
     PrintTech (EntReq); //запрос ввода
 
@@ -227,9 +233,9 @@ int ParseMain (struct Polinomial *mainPol)
     nParsedCoef += ParseToCoef (lEntPart, &leftPol);
     nParsedCoef += ParseToCoef (rEntPart, &rightPol);
     
-    (*mainPol).aP = leftPol.aP + rightPol.aP;
-    (*mainPol).bP = leftPol.bP + rightPol.bP;
-    (*mainPol).cP = leftPol.cP + rightPol.cP;
+    *a = leftPol.aP + rightPol.aP;
+    *b = leftPol.bP + rightPol.bP;
+    *c = leftPol.cP + rightPol.cP;
 
 
     return nParsedCoef;
@@ -258,36 +264,36 @@ int ParseToCoef (char EntPart [], struct Polinomial *parsPol)
         }
         else if (isdigit(EntPart [count]))
         {
-            double difference = ParseNum (EntPart, count, &shift);
+            double parsedDouble = ParseNum (EntPart, count, &shift);
             count += shift;
             isX = EntPart [(count)]; //х или не х
             isExp = EntPart [(count + 1)]; //^ или не ^
             double *coefAdress = ChooseCoef (isX, isExp, &(*parsPol).aP, &(*parsPol).bP, &(*parsPol).cP, &isA);
 
+            double difference = parsedDouble * (*parsPol).Sign;
             if (isA == 1) //смена x^2 на x^w для избежания ошибок парсинга
             {
                 EntPart [(count + 2)] = 'w';
             }
             count -= shift;
+
             if (count > 0)
             {
                 //сохранение знака
                 if (EntPart [(count - 1)] == '-')
                 {   
-                    *coefAdress -= difference*(*parsPol).Sign;
+                    *coefAdress -= difference;
                 }
                 else
                 {
-                    
-                    *coefAdress +=  difference*(*parsPol).Sign;
-                    
+                    *coefAdress +=  difference;
                 }
             }
             else
             {
-                *coefAdress += difference*(*parsPol).Sign;
+                *coefAdress += difference;
             }
-            count += (shift+1);
+            count += (shift + 1);
             shift = 0;
             nParsedCoef++;
             isA = 0;
@@ -343,19 +349,20 @@ int DeliteSpase (char inString[])
                 char charBefSpc = inString [(countString - 1)]; //символ перед пробелом
                 while (takenChar == ' ')
                 {
-                    takenChar = getchar();
+                    takenChar = getchar ();
                 }
                 if (takenChar == '\n')
                 {
                     return 1;
                 }
-                inString[countString] = takenChar; //сохранение символа после пробела
+                inString [countString] = takenChar; //сохранение символа после пробела
                 inString [(countString + 1)] = 0;
                 char charAftSpc = inString[countString];
                 countString++;
-                takenChar = getchar(); //не было, но как будто нужно. стоит разобраться
+                takenChar = getchar (); //не было, но как будто нужно. стоит разобраться
 
-                if ((charBefSpc != '-' && charBefSpc != '+' && charBefSpc != '=') && (charAftSpc != '-' && charAftSpc != '+' && charAftSpc != '=' && charAftSpc != 0))
+                if ((charBefSpc != '-' && charBefSpc != '+' && charBefSpc != '=') &&
+                   (charAftSpc != '-' && charAftSpc != '+' && charAftSpc != '=' && charAftSpc != 0))
                 {
                     printf (RED"ERROR! No sign after \'%c\', before \'%c\'"RESET, inString [countString - 1], charAftSpc);
                     abort ();
@@ -363,7 +370,7 @@ int DeliteSpase (char inString[])
             }
             else  //удаление ведущих пробелов
             {
-                takenChar = getchar();
+                takenChar = getchar ();
             }
         }
         else  //сохранение всего кроме ' '
@@ -371,7 +378,7 @@ int DeliteSpase (char inString[])
             inString [countString] = takenChar;
             inString [(countString + 1)] = 0;
             countString++;
-            takenChar = getchar();
+            takenChar = getchar ();
         }
     }
     return 1;
@@ -424,7 +431,7 @@ double ParseNum ( char Part [], int count, int *shift)
     int duCount = count;
     int place = -1;
 
-    while (isdigit(Part [duCount]))
+    while (isdigit (Part [duCount]))
     {
         place++;
         duCount++;
@@ -432,7 +439,7 @@ double ParseNum ( char Part [], int count, int *shift)
 
     double multiplier = pow (10, place);
 
-    while ((isdigit(Part [count])  || Part [count] == ',' || Part [count] == '.') && Part [count] != 0)
+    while ((isdigit (Part [count])  || Part [count] == ',' || Part [count] == '.') && Part [count] != 0)
     {
         if (Part [count] == ',' || Part [count] == '.')
         {
@@ -457,6 +464,7 @@ double* ChooseCoef (char isX, char isExp, double *a, double *b, double *c, int *
     assert (b != NULL);
     assert (c != NULL);
     assert (isA != NULL);
+    assert (*isA == 0);
 
     if (isX == 'x')
     {
@@ -494,8 +502,11 @@ void BufferClean ()
 int SolverTest (struct Polinomial testPolRef)
 {
     struct Polinomial testPol = {.aP = testPolRef.aP, .bP = testPolRef.bP, .cP = testPolRef.cP};
-    testPol.nOfSol = SolveKv (&testPol);
-    if (testPolRef.nOfSol == 2 && (CheckX (testPol.x1, testPolRef.aP, testPolRef.bP, testPolRef.cP) || CheckX (testPol.x2, testPolRef.aP, testPolRef.bP, testPolRef.cP)) && testPolRef.nOfSol == testPol.nOfSol)
+    testPol.nOfSol = SolveKv (testPol.aP, testPol.bP, testPol.cP, &testPol.x1, &testPol.x2);
+    if (testPolRef.nOfSol == 2 && 
+        (CheckX (testPol.x1, testPolRef.aP, testPolRef.bP, testPolRef.cP) ||
+        CheckX (testPol.x2, testPolRef.aP, testPolRef.bP, testPolRef.cP)) 
+        && testPolRef.nOfSol == testPol.nOfSol)
     {
         printf (RED "Test FAILED! Wrong answer!:\n" RESET
                 "a = " RED "%lg, " RESET "b = " RED "%lg, " RESET "c = " RED "%lg" RESET "\n"
@@ -513,7 +524,7 @@ int SolverTest (struct Polinomial testPolRef)
     }
     else if (testPolRef.nOfSol == 0 && testPolRef.nOfSol == testPol.nOfSol)
     {
-        printf(GREEN"Test PASSED\n" RESET);
+        printf (GREEN"Test PASSED\n" RESET);
         return 0;
     }
     else if (testPolRef.nOfSol != testPol.nOfSol)
@@ -524,76 +535,73 @@ int SolverTest (struct Polinomial testPolRef)
                 , testPolRef.aP, testPolRef.bP, testPolRef.cP, testPol.nOfSol, testPolRef.nOfSol);
         return 1;
     }
-    printf(GREEN"Test PASSED\n" RESET);
+    printf (GREEN"Test PASSED\n" RESET);
     return 0;
 }
 
 
 int CheckX (double x, double a, double b, double c)
 {
-    if (fabs(x*x*a + x*b +c) <= ACCURACY)
-    {
-        return 0;
-    }
-    return 1;
+    return IsDoubleZero (a * x * x + b * x + c);
 }
 
 
 void RunSolveTestsAuto (int repeats, int kindOfTest)
 {   
     int countFail = 0;
+    struct Polinomial testPolRef;
     switch (kindOfTest)
     {
     case 0:
         while (repeats)
         {
-            struct Polinomial testPolRef = {.nOfSol = 0};
+            testPolRef.nOfSol = 0;
             GenerateNoRootsTest(&testPolRef.aP, &testPolRef.bP, &testPolRef.cP);
             countFail += SolverTest (testPolRef);
             --repeats;
         }
         printf ("%d tests had been failed\n", countFail);
-        abort();
+        abort ();
     case 1:
         while (repeats)
         {
-            struct Polinomial testPolRef = {.nOfSol = 1};
+            testPolRef.nOfSol = 1;
             GenerateOneRootTest(&testPolRef.aP, &testPolRef.bP, &testPolRef.cP);
             countFail += SolverTest (testPolRef);
             --repeats;
         }
         printf ("%d tests had been failed\n", countFail);
-        abort();
+        abort ();
     case 2:
         while (repeats)
         {
-            struct Polinomial testPolRef = {.nOfSol = 2};
+            testPolRef.nOfSol = 2;
             GenerateTwoRootsTest(&testPolRef.aP, &testPolRef.bP, &testPolRef.cP);
             countFail += SolverTest (testPolRef);
             --repeats;
         }
         printf ("%d tests had been failed\n", countFail);
-        abort();
+        abort ();
     case 3:
         while (repeats)
         {
-            struct Polinomial testPolRef = {.nOfSol = 1};
+            testPolRef.nOfSol = 1;
             GenerateOneRootsTestLinear(&testPolRef.aP, &testPolRef.bP, &testPolRef.cP);
             countFail += SolverTest (testPolRef);
             --repeats;
         }
         printf ("%d tests had been failed\n", countFail);
-        abort();
+        abort ();
     case 4:
         while (repeats)
         {
-            struct Polinomial testPolRef = {.nOfSol = 0};
+            testPolRef.nOfSol = 0;
             GenerateNoRootsTestLinear(&testPolRef.aP, &testPolRef.bP, &testPolRef.cP);
             countFail += SolverTest (testPolRef);
             --repeats;
         }
         printf ("%d tests had been failed\n", countFail);
-        abort();
+        abort ();
     }
 }
 
@@ -610,19 +618,15 @@ void RunSolveTestsManual ()
     {
         SolverTest (testsPolinomsRef[0]);
     }
-    abort();
+    abort ();
 }
 
 
 double RandDouble ()
 {
-    int maxDoubleRange = 10;
-    double randD = (double)rand() / RAND_MAX * maxDoubleRange;
-    int randI = rand();
-    if (randI > RAND_MAX/2)
-    {
-        randD *= -1;
-    }
+    int maxDoubleRange = 10; //реальное максимальное значение меньше на minDoubleRange
+    int minDoubleRange = -5;
+    double randD = (double)rand () / RAND_MAX * maxDoubleRange + minDoubleRange;
     return randD;
 }
 
@@ -631,13 +635,16 @@ void menu ()
 {
     printf ("enter 0 if you want to solve equation\n"
             "enter 1 if you want to start tests\n");
+
     int switcher = 10;
     scanf ("%d", &switcher);
+
     if (switcher != 0 && switcher != 1)
-        {
-            printf (RED"INPUT ERROR!\n"RESET);
-            abort();
-        }
+    {
+        printf (RED"INPUT ERROR!\n"RESET);
+        abort ();
+    }
+
     switch (switcher)
     {
     case 0:
@@ -653,7 +660,7 @@ void menu ()
         if (!(scanf ("%d", &switcher)))
         {
             printf (RED"INPUT ERROR!\n"RESET);
-            abort();
+            abort ();
         }
 
         int repeats = 0;
@@ -664,27 +671,22 @@ void menu ()
             if (!(scanf ("%d", &repeats)))
             {
                 printf (RED"INPUT ERROR!\n"RESET);
-                abort();
+                abort ();
             }
         }
 
-        switch (switcher)
+        if (switcher < 5)
         {
-        case 0:
-            RunSolveTestsAuto (repeats, 0);
-        case 1:
-            RunSolveTestsAuto (repeats, 1);
-        case 2:
-            RunSolveTestsAuto (repeats, 2);
-        case 3:
-            RunSolveTestsAuto (repeats, 3);
-        case 4:
-            RunSolveTestsAuto (repeats, 4);
-        case 5:
+            RunSolveTestsAuto (repeats, switcher);
+        }
+        else if (switcher == 5)
+        {
             RunSolveTestsManual ();
-        default:
+        }
+        else 
+        {
             printf ("INPUT ERROR!\n"RESET);
-            abort();
+            abort ();
         }
 
         break;
@@ -697,9 +699,9 @@ void menu ()
 
 void GenerateTwoRootsTest (double *a, double *b, double *c)
 {
-    double x1Ref = RandDouble();
-    double x2Ref = RandDouble();
-    double aRef = RandDouble();
+    double x1Ref = RandDouble ();
+    double x2Ref = RandDouble ();
+    double aRef = RandDouble ();
 
     *a = aRef;
     *b = -aRef * (x1Ref+x2Ref);
@@ -709,8 +711,8 @@ void GenerateTwoRootsTest (double *a, double *b, double *c)
 
 void GenerateOneRootTest (double *a, double *b, double *c)
 {
-    double x1Ref = RandDouble();
-    double aRef = RandDouble();
+    double x1Ref = RandDouble ();
+    double aRef = RandDouble ();
 
     *a = aRef;
     *b = -aRef * 2 * x1Ref;
@@ -720,9 +722,9 @@ void GenerateOneRootTest (double *a, double *b, double *c)
 
 void GenerateNoRootsTest (double *a, double *b, double *c)
 {
-    double x1Ref = RandDouble();
-    double aRef = RandDouble();
-    double cRef = RandDouble();
+    double x1Ref = RandDouble ();
+    double aRef = RandDouble ();
+    double cRef = RandDouble ();
 
     if ((cRef <= 0 && aRef > 0) || (cRef >= 0 && aRef < 0))
     {
@@ -739,28 +741,30 @@ void GenerateNoRootsTestLinear (double *a, double *b, double *c)
 {
     *a = 0;
     *b = 0;
-    *c = RandDouble();
+    *c = RandDouble ();
 }
 
 
 void GenerateOneRootsTestLinear (double *a, double *b, double *c)
 {
     *a = 0;
-    *b = RandDouble();
-    *c = RandDouble();
+    *b = RandDouble ();
+    *c = RandDouble ();
 }
 
 
-/*int ParsTest (char coefOrderRef[4], double aRef, double bRef, double cRef)
+int ParseTest (double aRef, double bRef, double cRef)
 {
     double a = NAN, b = NAN, c = NAN;
-    ParsMain (&a, &b, &c, testString);
+    
+
+    ParsMain (&a, &b, &c);
     if (a != aRef || b != bRef || c != cRef)
     {
         printf ("Parsing test FAILED:\n"
-                "Expected: orderRef - %s, aRef = %lg, bRef = %lg, cRef = %lg\n"
-                "Got: order - %s, a = %lg, b = %lg, c = %lg",
-                coefOrderRef, aRef, bRef, cRef, coefOrder, a, b, c);
+                "Expected: aRef = %lg, bRef = %lg, cRef = %lg\n"
+                "Got: a = %lg, b = %lg, c = %lg",
+                aRef, bRef, cRef, a, b, c);
     }
 }
 
@@ -768,5 +772,19 @@ void GenerateOneRootsTestLinear (double *a, double *b, double *c)
 
 int RunParsTests ()
 {
+    struct ParseTestString test1 = {.testString = "1.4x^2 + 0.0x + 1 = 0.0x^2 + 7.5x\n", .aRef = 1.4, .bRef = 7.5, .cRef = 1};
 
-}*/
+    EmulateInputBuffer (test1.testString);
+    Parsetest (test1.aRef, test1.bRef, test1.cRef);
+}
+
+
+void EmulateInputBuffer (const char *testingString)
+{
+    int len = strlen (testingString);
+
+    for (int i = len - 1; i >= 0 ; i--)
+    {
+        ungetc(testingString[i], stdin);
+    }
+}
