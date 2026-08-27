@@ -1,16 +1,9 @@
-#ifndef RED RESET GREEN ACCURACY
-#define RED     "\033[31m"
-#define RESET   "\033[0m"
-#define GREEN   "\033[32m"
+#ifndef SqTestsH
 
-#define ACCURACY 0.001
+#define SqTestsH
 
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include "DefinesConst.h"
 #include "StructPol.h"
-
-
 
 //функции для теста
 int SolverTest                 (struct Polinomial testPolRef);
@@ -18,7 +11,6 @@ int CheckX                     (double x, double a, double b, double c);
 void RunSolveTestsAuto         (int repeats, int kindOfTest);
 void RunSolveTestsManual       ();
 double RandDouble              ();
-void menu                      ();
 void BufferClean               ();
 void GenerateTwoRootsTest      (double *a, double *b, double *c);
 void GenerateOneRootTest       (double *a, double *b, double *c);

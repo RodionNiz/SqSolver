@@ -1,3 +1,7 @@
+#ifndef STRUCT_POL
+
+#define STRUCT_POL
+
 struct Polinomial //cringenaming
 {
     double aP, bP, cP;
@@ -5,3 +9,5 @@ struct Polinomial //cringenaming
     int nOfSol;
     int Sign;
 };
+
+#endif

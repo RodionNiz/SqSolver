@@ -3,15 +3,9 @@
 #include <assert.h>
 #include <string.h>
 #include <ctype.h>
-#include "Solver.h"
 #include <math.h>
 
-
-#define RED     "\033[31m"
-#define GREEN   "\033[32m"
-#define RESET   "\033[0m"
-
-#define ACCURACY 0.001
+#include "Solver.h"
 
 //поиск корня в случае нулевого старшего коэффициента квадратного уравнения
 int SolveLinear (double b, double c, double *x1)

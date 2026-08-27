@@ -1,13 +1,13 @@
-#include <stdio.h>
-#include <math.h>
 #include <assert.h>
 #include <ctype.h>
-#include <stdlib.h>
 #include <string.h>
 
-#include "StructPol.h"
-#include "SqTests.h"
-#include "Parser.h"
+#include "StructPol.h"      //структура Polinomial
+#include "DefinesConst.h"   //дефайны констант
+#include "Parser.h"         //парсинг строки с квадратными трехчленами
+#include "Solver.h"         //решение квадратного уравнения с известными коэффициентами
+#include "SqTests.h"        //проверка решений квадратного уравнения
+
 
 //структура для тестов парсера
 struct ParseTestString 
@@ -23,16 +23,10 @@ enum Sol
 }; 
 
 
-void PrintAns            (struct Polinomial);                                           //функция выводит ответы
-void PrintStructPolinom  (struct Polinomial);
+void PrintAns            (struct Polinomial);       //функция выводит ответы
+void PrintStructPolinom  (struct Polinomial);       
 void BufferClean         ();
-
-//цвета для вывода
-#define RED     "\033[31m"
-#define GREEN   "\033[32m"
-#define RESET   "\033[0m"
-
-#define ACCURACY 0.001
+void menu                ();
 
 
 int main ()
@@ -60,6 +54,7 @@ void PrintStructPolinom (struct Polinomial printingStruc)
 }
 
 
+//сравнение double с 0
 int IsDoubleZero (double iszero)
 {
     return (fabs (iszero) < ACCURACY);
@@ -74,23 +69,23 @@ void PrintAns (struct Polinomial mainPol)
     switch (mainPol.nOfSol)
     {
     case 0:
-        printf ("You have no answers \n");                        //discriminant  <0
+        printf ("You have no answers \n");                            //discriminant  <0
         break;
     case 1:
-        printf ("Your answer is " GREEN "%lg \n" RESET, mainPol.x1);                    //линейное или квадратное с одним корнем
+        printf ("Your answer is " GREEN "%lg \n" RESET, mainPol.x1);  //линейное или квадратное с одним корнем
         break;
     case 2:
         printf ("Your first answer is " GREEN "%lg," RESET" and your second answer is" GREEN " %lg" RESET, mainPol.x1, mainPol.x2);  //квадратное
         break;
     case InfSol:
-        printf ("Every x is an answer \n");                      //два старших коэффициента нулевые
+        printf ("Every x is an answer \n");                           //два старших коэффициента нулевые
         break;
     default:
         break;
     }
 }
 
-
+//отчистка буффера ввода
 void BufferClean ()
 {
     while (1)
@@ -105,7 +100,10 @@ void BufferClean ()
 
 
 
-/*
+
+
+
+
 int ParseTest (double aRef, double bRef, double cRef)
 {
     double a = NAN, b = NAN, c = NAN;
@@ -121,7 +119,7 @@ int ParseTest (double aRef, double bRef, double cRef)
     }
 }
 
-
+/*
 
 int RunParsTests ()
 {

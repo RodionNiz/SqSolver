@@ -1,14 +1,12 @@
 #include "StructPol.h"
 #include "Parser.h"
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <assert.h>
 #include <string.h>
 #include <ctype.h>
 
 
-//парсинг коэффициентов
+//Вызов всех функций парсинга
 int ParseMain (double *a, double *b, double *c)
 {
     assert (a != NULL);
@@ -22,13 +20,13 @@ int ParseMain (double *a, double *b, double *c)
     char rEntPart [20];
     int nParsedCoef = 0;
     
-    if (DeliteSpase (inString) == 0)
+    if (DeliteSpase (inString) == 0) //удаление пробелов, проверка корректности ввода
     {
         return 0;
     } 
 
 
-    SeparatePol (inString, lEntPart, rEntPart);
+    SeparatePol (inString, lEntPart, rEntPart); //разделение выражения на части до и после '='
 
 
     struct Polinomial leftPol = {.aP = 0, .bP = 0, .cP = 0, .Sign = 1};
@@ -46,9 +44,11 @@ int ParseMain (double *a, double *b, double *c)
 }
 
 
+//парсинг строки до появления цифры
 int ParseToCoef (char EntPart [], struct Polinomial *parsPol)
 {
     assert (parsPol != NULL);
+    assert (EntPart != NULL);
 
     int nParsedCoef = 0;
     int shift = 0;
@@ -61,7 +61,6 @@ int ParseToCoef (char EntPart [], struct Polinomial *parsPol)
 
     while (EntPart [count] != 0)     
     { 
-
         if (!isdigit(EntPart [count]) && EntPart [count] != 'x')
         {
             count++;
@@ -70,12 +69,12 @@ int ParseToCoef (char EntPart [], struct Polinomial *parsPol)
         {
             double parsedDouble = ParseNum (EntPart, count, &shift);
             count += shift;
-            isX = EntPart [(count)]; //х или не х
-            isExp = EntPart [(count + 1)]; //^ или не ^
+            isX = EntPart [(count)];        //х или не х
+            isExp = EntPart [(count + 1)];  //^ или не ^
             double *coefAdress = ChooseCoef (isX, isExp, &(*parsPol).aP, &(*parsPol).bP, &(*parsPol).cP, &isA);
 
             double difference = parsedDouble * (*parsPol).Sign;
-            if (isA == 1) //смена x^2 на x^w для избежания ошибок парсинга
+            if (isA == 1)                   //смена x^2 на x^w для избежания ошибок парсинга
             {
                 EntPart [(count + 2)] = 'w';
             }
@@ -83,7 +82,7 @@ int ParseToCoef (char EntPart [], struct Polinomial *parsPol)
 
             if (count > 0)
             {
-                //сохранение знака
+                //выбор знака
                 if (EntPart [(count - 1)] == '-')
                 {   
                     *coefAdress -= difference;
@@ -102,7 +101,7 @@ int ParseToCoef (char EntPart [], struct Polinomial *parsPol)
             nParsedCoef++;
             isA = 0;
         }
-        else //x или x^2 без коэффициента
+        else //x или x^2 без коэффициента (+x = +1x)
         {
             isX = EntPart [(count)]; //х или не х
             isExp = EntPart [(count + 1)]; //^ или не ^
@@ -123,9 +122,11 @@ int ParseToCoef (char EntPart [], struct Polinomial *parsPol)
 }
 
 
-//удаление пробелов
+//удаление пробелов, проверка ошибок ввода
 int DeliteSpase (char inString[])
 {
+    assert (inString != NULL);
+
     int countString = 0;
     char takenChar = ' '; //последний взятый чар
 
@@ -145,7 +146,6 @@ int DeliteSpase (char inString[])
                 printf (RED"ERROR! First symbol is unsupported"RESET);
             }
         }
-
         if (takenChar == ' ')
         {   
             if (countString > 0) //проверка на ошибку отсутствия знака
@@ -172,12 +172,12 @@ int DeliteSpase (char inString[])
                     abort ();
                 }
             }
-            else  //удаление ведущих пробелов
+            else    //удаление ведущих пробелов
             {
                 takenChar = getchar ();
             }
         }
-        else  //сохранение всего кроме ' '
+        else        //сохранение всего кроме ' '
         {
             inString [countString] = takenChar;
             inString [(countString + 1)] = 0;
@@ -192,11 +192,13 @@ int DeliteSpase (char inString[])
 //разделение на левую и правую часть
 void SeparatePol (char inString [], char lEntPart [], char rEntPart [])
 {
+    assert (inString != NULL);
+    assert (lEntPart != NULL);
+    assert (rEntPart != NULL);
+
     int partFlag = 0;
     int countIn = 0;
     int countOut = 0;
-
-    //printf ("instring is %s.\n", inString);
     
     while (inString [countIn] != 0)
     {
@@ -222,20 +224,20 @@ void SeparatePol (char inString [], char lEntPart [], char rEntPart [])
             countOut++;
         }
     }
-    //printf ("right part after while %s\n", rEntPart);
 }
 
 
-//парсинг цифр
+//парсинг цифр, запись значения в коэффициенты
 double ParseNum ( char Part [], int count, int *shift)
 {
     assert (shift != NULL);
+    assert (Part != 0);
 
     double coef = 0;
     int duCount = count;
     int place = -1;
 
-    while (isdigit (Part [duCount]))
+    while (isdigit (Part [duCount])) //определение разряда первой цифры коэффициента
     {
         place++;
         duCount++;
@@ -262,6 +264,7 @@ double ParseNum ( char Part [], int count, int *shift)
 }
 
 
+//выбор считываемого коэфиициента
 double* ChooseCoef (char isX, char isExp, double *a, double *b, double *c, int *isA)
 {
     assert (a != NULL);

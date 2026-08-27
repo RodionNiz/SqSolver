@@ -1,11 +1,16 @@
 #include "SqTests.h"
 #include "StructPol.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+
+
+//
 int SolverTest (struct Polinomial testPolRef)
 {
     struct Polinomial testPol = {.aP = testPolRef.aP, .bP = testPolRef.bP, .cP = testPolRef.cP};
     testPol.nOfSol = SolveKv (testPol.aP, testPol.bP, testPol.cP, &testPol.x1, &testPol.x2);
-    if (testPolRef.nOfSol == 2 && 
+    if (testPolRef.nOfSol == 2 &&                                                                   //проверка правильности 2 корней
         (CheckX (testPol.x1, testPolRef.aP, testPolRef.bP, testPolRef.cP) ||
         CheckX (testPol.x2, testPolRef.aP, testPolRef.bP, testPolRef.cP)) 
         && testPolRef.nOfSol == testPol.nOfSol)
@@ -17,19 +22,19 @@ int SolverTest (struct Polinomial testPolRef)
         return 1;
     }
     if (CheckX (testPol.x1, testPolRef.aP, testPolRef.bP, testPolRef.cP) && testPolRef.nOfSol == 1 && testPolRef.nOfSol == testPol.nOfSol)
-    {
+    {                                                                                              //проверка правильности одног корня
         printf (RED "Test FAILED! Wrong answer!:\n" RESET
                 "a = " RED "%lg, " RESET "b = " RED "%lg, " RESET "c = " RED "%lg" RESET "\n"
                 "got: numOfSol = " RED "%d, " RESET "x1 = " RED "%lg, " RESET "x2 = " RED "%lg\n" RESET
                 , testPolRef.aP, testPolRef.bP, testPolRef.cP, testPol.nOfSol, testPol.x1, testPol.x2);
         return 1;
     }
-    else if (testPolRef.nOfSol == 0 && testPolRef.nOfSol == testPol.nOfSol)
+    else if (testPolRef.nOfSol == 0 && testPolRef.nOfSol == testPol.nOfSol)                       //случай без корней
     {
         printf (GREEN"Test PASSED\n" RESET);
         return 0;
     }
-    else if (testPolRef.nOfSol != testPol.nOfSol)
+    else if (testPolRef.nOfSol != testPol.nOfSol)                                                 //ошибка при несовпадении колва корней
     {
         printf (RED "Test FAILED! Wrong nOfSol:\n" RESET
                 "a = " RED "%lg, " RESET "b = " RED "%lg, " RESET "c = " RED "%lg" RESET "\n"
@@ -42,9 +47,10 @@ int SolverTest (struct Polinomial testPolRef)
 }
 
 
+//проверка правильности корня, 0 если корень верный, 1 если неверный
 int CheckX (double x, double a, double b, double c)
 {
-    return IsDoubleZero (a * x * x + b * x + c);
+    return !IsDoubleZero (a * x * x + b * x + c);
 }
 
 
@@ -201,6 +207,10 @@ void menu ()
 
 void GenerateTwoRootsTest (double *a, double *b, double *c)
 {
+    assert (a != NULL);
+    assert (b != NULL);
+    assert (c != NULL);
+
     double x1Ref = RandDouble ();
     double x2Ref = RandDouble ();
     double aRef = RandDouble ();
@@ -213,6 +223,10 @@ void GenerateTwoRootsTest (double *a, double *b, double *c)
 
 void GenerateOneRootTest (double *a, double *b, double *c)
 {
+    assert (a != NULL);
+    assert (b != NULL);
+    assert (c != NULL);
+
     double x1Ref = RandDouble ();
     double aRef = RandDouble ();
 
@@ -224,6 +238,10 @@ void GenerateOneRootTest (double *a, double *b, double *c)
 
 void GenerateNoRootsTest (double *a, double *b, double *c)
 {
+    assert (a != NULL);
+    assert (b != NULL);
+    assert (c != NULL);
+
     double x1Ref = RandDouble ();
     double aRef = RandDouble ();
     double cRef = RandDouble ();
@@ -241,6 +259,10 @@ void GenerateNoRootsTest (double *a, double *b, double *c)
 
 void GenerateNoRootsTestLinear (double *a, double *b, double *c)
 {
+    assert (a != NULL);
+    assert (b != NULL);
+    assert (c != NULL);
+
     *a = 0;
     *b = 0;
     *c = RandDouble ();
@@ -249,6 +271,10 @@ void GenerateNoRootsTestLinear (double *a, double *b, double *c)
 
 void GenerateOneRootsTestLinear (double *a, double *b, double *c)
 {
+    assert (a != NULL);
+    assert (b != NULL);
+    assert (c != NULL);
+
     *a = 0;
     *b = RandDouble ();
     *c = RandDouble ();
