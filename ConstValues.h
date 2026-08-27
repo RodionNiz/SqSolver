@@ -6,7 +6,7 @@
 #define RESET   "\033[0m"
 #define GREEN   "\033[32m"
 
-const double ACCURACY  = 0.0001;
+#define ACCURACY 0.0001
 
 enum modeOfTestSolve
 {

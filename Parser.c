@@ -295,10 +295,11 @@ double* ChooseCoef (char isX, char isPow, double *a, double *b, double *c, int *
     assert (c != NULL);
     assert (isA != NULL);
     assert (*isA == 0);
-    assert (!isdigit (isPow));
+    
 
     if (isX == 'x')
     {
+        assert (!isdigit (isPow));
         if (isPow == '^')
         {
             *isA = 1;
