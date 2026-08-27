@@ -6,25 +6,63 @@
 #include <ctype.h>
 
 
+int ReadInputBuffer (double *a, double *b, double *c)
+{
+    printf ("Enter equation like\n0.0x^2 + 0.0x + 0 = 0.0x^2 + 0.0x + 0\n\n"); //запрос ввода
+
+    char inString [40];
+
+    assert (a != NULL);
+    assert (b != NULL);
+    assert (c != NULL);
+
+    int tempChar = getchar ();
+    int count = 0;
+    int isFirst = 0;
+    const char *allowed = "0123456789.,x^=+- ";
+    while (tempChar != EOF && tempChar != '\n' && tempChar != 0)
+    {
+        if (strchr (allowed, tempChar) == NULL)
+        {
+            if (isFirst != 0)
+            {
+                printf (RED"ERROR! Unsupported symbol \'%c\' after %c"RESET, tempChar, inString [count]);
+                abort ();
+            }
+            else
+            {
+                printf (RED"ERROR! First symbol is unsupported"RESET);
+            }
+        }
+        inString [count] = tempChar;
+        inString [count + 1] = 0;
+        isFirst++;
+        count++;
+        tempChar = getchar ();
+    }
+    return ParseMain (a, b, c, inString);
+}
+
+
 //Вызов всех функций парсинга
-int ParseMain (double *a, double *b, double *c)
+int ParseMain (double *a, double *b, double *c, char inString [])
 {
     assert (a != NULL);
     assert (b != NULL);
     assert (c != NULL);
 
-    printf ("Enter equation like\n0.0x^2 + 0.0x + 0 = 0.0x^2 + 0.0x + 0\n\n"); //запрос ввода
-
-    char inString [40];
+    
     char lEntPart [20];
     char rEntPart [20];
     int nParsedCoef = 0;
     
-    if (DeliteSpase (inString) == 0) //удаление пробелов, проверка корректности ввода
+    //ReadInputBuffer (inString);  //считывание строки из буффера ввода
+
+    if (DeliteSpase (inString) == 0)    //удаление пробелов, проверка корректности ввода
     {
+        printf (RED"err"RESET);
         return 0;
     } 
-
 
     SeparatePol (inString, lEntPart, rEntPart); //разделение выражения на части до и после '='
 
@@ -41,6 +79,98 @@ int ParseMain (double *a, double *b, double *c)
 
 
     return nParsedCoef;
+}
+
+//удаление пробелов, проверка ошибок ввода
+int DeliteSpase (char String [])
+{
+    assert (String != NULL);
+
+    int countInString = 0;
+    int countOutString = 0;
+    char cBeforeSpace = '0';
+    char cAfterSpace = '0';
+
+    while (String [countInString] != 0)
+    {
+        if (String [countInString] == ' ')
+        {
+            if (countOutString != 0)
+            {
+                cBeforeSpace = String [countOutString - 1];
+                while (String [countInString] == ' ')
+                {
+                    countInString++;
+                }
+                cAfterSpace = String [countInString];
+                
+                printf ("char is \'%c\', countsring is %d \n", cAfterSpace, countInString);
+                if ((cBeforeSpace != '-' && cBeforeSpace != '+' && cBeforeSpace != '=') &&                  //проверка на отсутствие знака
+                   (cAfterSpace != '-' && cAfterSpace != '+' && cAfterSpace != '=' && cAfterSpace != 0))
+                {
+                    printf (RED"ERROR! No sign after \'%c\', before \'%c\'"RESET, cBeforeSpace, cAfterSpace);
+                    abort ();
+                }
+                else
+                {
+                    String [countOutString] = String [countInString];
+                    countInString++;
+                    countOutString++;
+                }
+            } 
+            else //удаление ведущих пробелов
+            {
+                countInString++;
+            }
+        }
+        else 
+        {
+            String [countOutString] = String [countInString];
+            countInString++;
+            countOutString++;
+        }
+    }
+    String [countOutString] = 0;
+    return 1;
+}
+
+
+
+//разделение на левую и правую часть
+void SeparatePol (char inString [], char lEntPart [], char rEntPart [])
+{
+    assert (inString != NULL);
+    assert (lEntPart != NULL);
+    assert (rEntPart != NULL);
+
+    int partFlag = 0;
+    int countIn = 0;
+    int countOut = 0;
+    
+    while (inString [countIn] != 0)
+    {
+        if (!partFlag)
+        {   if (inString [countIn] != '=')
+            {
+                lEntPart [countOut] = inString [countIn];
+                lEntPart [(countOut + 1)] = 0;
+                countIn++;
+                countOut++;
+            }
+            else
+            {
+                partFlag = 1;
+                countOut = 0;
+            }
+        }
+        else
+        {
+            rEntPart [countOut] = inString [countIn + 1];
+            rEntPart [(countOut + 1)] = 0;
+            countIn++;
+            countOut++;
+        }
+    }
 }
 
 
@@ -119,111 +249,6 @@ int ParseToCoef (char EntPart [], struct Polinomial *parsPol)
         }
     }
     return nParsedCoef;
-}
-
-
-//удаление пробелов, проверка ошибок ввода
-int DeliteSpase (char inString[])
-{
-    assert (inString != NULL);
-
-    int countString = 0;
-    char takenChar = ' '; //последний взятый чар
-
-    const char *allowed = "0123456789.,x^=+- ";
-
-    while (takenChar != EOF && takenChar != '\n' && takenChar != 0)
-    { 
-        if (strchr (allowed, takenChar) == NULL)
-        {
-            if (countString != 0)
-            {
-                printf (RED"ERROR! Unsupported symbol \'%c\' after %c"RESET, takenChar, inString [countString - 1]);
-                abort ();
-            }
-            else
-            {
-                printf (RED"ERROR! First symbol is unsupported"RESET);
-            }
-        }
-        if (takenChar == ' ')
-        {   
-            if (countString > 0) //проверка на ошибку отсутствия знака
-            {
-                char charBefSpc = inString [(countString - 1)]; //символ перед пробелом
-                while (takenChar == ' ')
-                {
-                    takenChar = getchar ();
-                }
-                if (takenChar == '\n')
-                {
-                    return 1;
-                }
-                inString [countString] = takenChar; //сохранение символа после пробела
-                inString [(countString + 1)] = 0;
-                char charAftSpc = inString[countString];
-                countString++;
-                takenChar = getchar (); //не было, но как будто нужно. стоит разобраться
-
-                if ((charBefSpc != '-' && charBefSpc != '+' && charBefSpc != '=') &&
-                   (charAftSpc != '-' && charAftSpc != '+' && charAftSpc != '=' && charAftSpc != 0))
-                {
-                    printf (RED"ERROR! No sign after \'%c\', before \'%c\'"RESET, inString [countString - 1], charAftSpc);
-                    abort ();
-                }
-            }
-            else    //удаление ведущих пробелов
-            {
-                takenChar = getchar ();
-            }
-        }
-        else        //сохранение всего кроме ' '
-        {
-            inString [countString] = takenChar;
-            inString [(countString + 1)] = 0;
-            countString++;
-            takenChar = getchar ();
-        }
-    }
-    return 1;
-}
-
-
-//разделение на левую и правую часть
-void SeparatePol (char inString [], char lEntPart [], char rEntPart [])
-{
-    assert (inString != NULL);
-    assert (lEntPart != NULL);
-    assert (rEntPart != NULL);
-
-    int partFlag = 0;
-    int countIn = 0;
-    int countOut = 0;
-    
-    while (inString [countIn] != 0)
-    {
-        if (!partFlag)
-        {   if (inString [countIn] != '=')
-            {
-                lEntPart [countOut] = inString [countIn];
-                lEntPart [(countOut + 1)] = 0;
-                countIn++;
-                countOut++;
-            }
-            else
-            {
-                partFlag = 1;
-                countOut = 0;
-            }
-        }
-        else
-        {
-            rEntPart [countOut] = inString [countIn + 1];
-            rEntPart [(countOut + 1)] = 0;
-            countIn++;
-            countOut++;
-        }
-    }
 }
 
 

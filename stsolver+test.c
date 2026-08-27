@@ -23,10 +23,13 @@ enum Sol
 }; 
 
 
-void PrintAns            (struct Polinomial);       //функция выводит ответы
-void PrintStructPolinom  (struct Polinomial);       
-void BufferClean         ();
-void menu                ();
+void PrintAns           (struct Polinomial);       //функция выводит ответы
+void PrintStructPolinom (struct Polinomial);       
+void BufferClean        ();
+void menu               ();
+
+
+int ParseTest           (double aRef, double bRef, double cRef, char testString []);
 
 
 int main ()
@@ -37,7 +40,7 @@ int main ()
 
     BufferClean ();                                                                             //очистка буффера ввода после функций scanf
 
-    if(!ParseMain (&mainPol.aP, &mainPol.bP, &mainPol.cP))                                      //возвращаемое значение - количество считаных коэффициентов
+    if(ReadInputBuffer (&mainPol.aP, &mainPol.bP, &mainPol.cP))                                      //возвращаемое значение - количество считаных коэффициентов
     {
         return 0;
     }
@@ -104,12 +107,13 @@ void BufferClean ()
 
 
 
-int ParseTest (double aRef, double bRef, double cRef)
+int ParseTest (double aRef, double bRef, double cRef, char testString [])
 {
+    
+    
     double a = NAN, b = NAN, c = NAN;
     
-
-    ParseMain (&a, &b, &c);
+    ParseMain (&a, &b, &c, testString);
     if (a != aRef || b != bRef || c != cRef)
     {
         printf ("Parsing test FAILED:\n"
@@ -119,23 +123,13 @@ int ParseTest (double aRef, double bRef, double cRef)
     }
 }
 
-/*
+
 
 int RunParsTests ()
 {
     struct ParseTestString test1 = {.testString = "1.4x^2 + 0.0x + 1 = 0.0x^2 + 7.5x\n", .aRef = 1.4, .bRef = 7.5, .cRef = 1};
 
-    EmulateInputBuffer (test1.testString);
-    Parsetest (test1.aRef, test1.bRef, test1.cRef);
+    ParseTest (test1.aRef, test1.bRef, test1.cRef, test1.testString);
 }
 
 
-void EmulateInputBuffer (const char *testingString)
-{
-    int len = strlen (testingString);
-
-    for (int i = len - 1; i >= 0 ; i--)
-    {
-        ungetc(testingString[i], stdin);
-    }
-}*/

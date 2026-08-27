@@ -4,6 +4,7 @@
 
 #include "DefinesConst.h"
 #include "StructPol.h"
+#include <assert.h>
 
 //функции для теста
 int SolverTest                 (struct Polinomial testPolRef);
