@@ -4,9 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 //
-int SolverTest (struct Polinomial testPolRef)
+int TestSolve (struct Polinomial testPolRef)
 {
     struct Polinomial testPol = {.aP = testPolRef.aP, .bP = testPolRef.bP, .cP = testPolRef.cP};
     testPol.nOfSol = SolveKv (testPol.aP, testPol.bP, testPol.cP, &testPol.x1, &testPol.x2);
@@ -53,85 +52,82 @@ int CheckX (double x, double a, double b, double c)
     return !IsDoubleZero (a * x * x + b * x + c);
 }
 
-//запуск автоматических тестов решения
-void RunSolveTestsAuto (int repeats, int kindOfTest)
+
+int RunTestSolveAuto (int repeats, int kindOfTest)
 {   
     int countFail = 0;
-    struct Polinomial testPolRef;
+    struct Polinomial testPolRef; /////////////////////////////////////////////////////////////
     switch (kindOfTest)
     {
-    case 0:
+    case SqNoRoots:
         while (repeats)
         {
             testPolRef.nOfSol = 0;
             GenerateNoRootsTest (&testPolRef.aP, &testPolRef.bP, &testPolRef.cP);
-            countFail += SolverTest (testPolRef);
+            countFail += TestSolve (testPolRef);
             --repeats;
         }
-        printf ("%d tests had been failed\n", countFail);
-        abort ();
-    case 1:
+        break;
+    case SqOneRoot:
         while (repeats)
         {
             testPolRef.nOfSol = 1;
             GenerateOneRootTest (&testPolRef.aP, &testPolRef.bP, &testPolRef.cP);
-            countFail += SolverTest (testPolRef);
+            countFail += TestSolve (testPolRef);
             --repeats;
         }
-        printf ("%d tests had been failed\n", countFail);
-        abort ();
-    case 2:
+        break;
+    case SqTwoRoots:
         while (repeats)
         {
             testPolRef.nOfSol = 2;
             GenerateTwoRootsTest (&testPolRef.aP, &testPolRef.bP, &testPolRef.cP);
-            countFail += SolverTest (testPolRef);
+            countFail += TestSolve (testPolRef);
             --repeats;
         }
-        printf ("%d tests had been failed\n", countFail);
-        abort ();
-    case 3:
+        break;
+    case LnOneRoot:
         while (repeats)
         {
             testPolRef.nOfSol = 1;
             GenerateOneRootsTestLinear (&testPolRef.aP, &testPolRef.bP, &testPolRef.cP);
-            countFail += SolverTest (testPolRef);
+            countFail += TestSolve (testPolRef);
             --repeats;
         }
-        printf ("%d tests had been failed\n", countFail);
-        abort ();
-    case 4:
+        break;
+    case LnNoRoot:
         while (repeats)
         {
             testPolRef.nOfSol = 0;
             GenerateNoRootsTestLinear (&testPolRef.aP, &testPolRef.bP, &testPolRef.cP);
-            countFail += SolverTest (testPolRef);
+            countFail += TestSolve (testPolRef);
             --repeats;
         }
-        printf ("%d tests had been failed\n", countFail);
-        abort ();
+        break;
     }
+    printf ("%d tests had been failed\n", countFail);
+    return countFail;
 }
 
 
-//запуск ручных тестов решения
-void RunSolveTestsManual ()
+int RunTestSolveManual ()
 {
+    int countFail = 0;
     struct Polinomial testsPolinomsRef [3] = 
     {
         {.aP = 1, .bP = 2.2, .cP = 1.21, .nOfSol = 1},
-        {.aP = 0, .bP = 0, .cP = 0, .nOfSol = -1}, //////////InfSol
+        {.aP = 0, .bP = 0, .cP = 0, .nOfSol = -1}, /////////////////////////////////////////////////InfSol
         {.aP = 0, .bP = 0, .cP = 1, .nOfSol = 0}
     };
     unsigned int size = sizeof (testsPolinomsRef) / sizeof (struct Polinomial);
     for (unsigned int i = 0; i < size; i++)
     {
-        SolverTest (testsPolinomsRef [0]);
+        countFail += TestSolve (testsPolinomsRef [0]);
     }
-    abort ();
+    return countFail;
 }
 
-//создание рандомного double в диапазоне от maxDoubleRange до minDoubleRange
+
 double RandDouble ()
 {
     int maxDoubleRange = 10; 

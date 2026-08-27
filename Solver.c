@@ -54,10 +54,9 @@ int SolveKv (double a, double b, double c, double *x1, double *x2)
 
     if (discriminant > ACCURACY)
     {
-        *x1 = (-b - sqrt(discriminant)) / a2;    //корни уравнения с положительным ненулевым D
+        *x1 = (-b - sqrt(discriminant)) / a2;    //корни уравнения с D > 0
         *x2 = (-b + sqrt(discriminant)) / a2;
         return 2;
     }
-    
     return 0;                   //случай с отсутствием действительных корней 
 }

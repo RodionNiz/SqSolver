@@ -10,7 +10,7 @@ int ReadInputBuffer (double *a, double *b, double *c)
 {
     printf ("Enter equation like\n0.0x^2 + 0.0x + 0 = 0.0x^2 + 0.0x + 0\n\n"); //запрос ввода
 
-    char inString [40];
+    char inString [InputStrLen];
 
     assert (a != NULL);
     assert (b != NULL);
@@ -27,7 +27,7 @@ int ReadInputBuffer (double *a, double *b, double *c)
             if (isFirst != 0)
             {
                 printf (RED"ERROR! Unsupported symbol \'%c\' after %c"RESET, tempChar, inString [count]);
-                abort ();
+                return -1;
             }
             else
             {
@@ -51,37 +51,37 @@ int ParseMain (double *a, double *b, double *c, char inString [])
     assert (b != NULL);
     assert (c != NULL);
     
-    char lEntPart [20];
-    char rEntPart [20];
+    char lEntPart [PoliStrLen];
+    char rEntPart [PoliStrLen];
     int nParsedCoef = 0;
     
     //ReadInputBuffer (inString);  //считывание строки из буффера ввода
 
-    if (DeliteSpase (inString) == 0)    //удаление пробелов, проверка корректности ввода
+    if (DeleteSpace (inString) == 0)    //удаление пробелов, проверка корректности ввода
     {
-        printf (RED"err"RESET);
+        abort ();
         return 0;
     } 
 
     SeparatePol (inString, lEntPart, rEntPart); //разделение выражения на части до и после '='
 
 
-    struct Polinomial leftPol = {.aP = 0, .bP = 0, .cP = 0, .Sign = 1};
-    struct Polinomial rightPol = {.aP = 0, .bP = 0, .cP = 0, .Sign = -1};
+    struct Polinomial leftPol = {.aP = 0, .bP = 0, .cP = 0};
+    struct Polinomial rightPol = {.aP = 0, .bP = 0, .cP = 0};
 
     nParsedCoef += ParseToCoef (lEntPart, &leftPol);
     nParsedCoef += ParseToCoef (rEntPart, &rightPol);
     
-    *a = leftPol.aP + rightPol.aP;
-    *b = leftPol.bP + rightPol.bP;
-    *c = leftPol.cP + rightPol.cP;
+    *a = leftPol.aP - rightPol.aP;
+    *b = leftPol.bP - rightPol.bP;
+    *c = leftPol.cP - rightPol.cP;
 
 
     return nParsedCoef;
 }
 
 //удаление пробелов, проверка ошибок ввода
-int DeliteSpase (char String [])
+int DeleteSpace (char String [])
 {
     assert (String != NULL);
 
@@ -106,7 +106,7 @@ int DeliteSpase (char String [])
                    (cAfterSpace != '-' && cAfterSpace != '+' && cAfterSpace != '=' && cAfterSpace != 0))
                 {
                     printf (RED"ERROR! No sign after \'%c\', before \'%c\'"RESET, cBeforeSpace, cAfterSpace);
-                    abort ();
+                    return 0;
                 }
                 else
                 {
@@ -185,7 +185,7 @@ int ParseToCoef (char EntPart [], struct Polinomial *parsPol)
     int count = 0;
     
     char isX = ' ';
-    char isExp = ' ';
+    char isPow = ' ';
 
     while (EntPart [count] != 0)     
     { 
@@ -198,10 +198,10 @@ int ParseToCoef (char EntPart [], struct Polinomial *parsPol)
             double parsedDouble = ParseNum (EntPart, count, &shift);
             count += shift;
             isX = EntPart [(count)];        //х или не х
-            isExp = EntPart [(count + 1)];  //^ или не ^
-            double *coefAdress = ChooseCoef (isX, isExp, &(*parsPol).aP, &(*parsPol).bP, &(*parsPol).cP, &isA);
+            isPow = EntPart [(count + 1)];  //^ или не ^
+            double *coefPtr = ChooseCoef (isX, isPow, &(*parsPol).aP, &(*parsPol).bP, &(*parsPol).cP, &isA);
 
-            double difference = parsedDouble * (*parsPol).Sign;
+            double difference = parsedDouble;
             if (isA == 1)                   //смена x^2 на x^w для избежания ошибок парсинга
             {
                 EntPart [(count + 2)] = 'w';
@@ -213,16 +213,16 @@ int ParseToCoef (char EntPart [], struct Polinomial *parsPol)
                 //выбор знака
                 if (EntPart [(count - 1)] == '-')
                 {   
-                    *coefAdress -= difference;
+                    *coefPtr -= difference;
                 }
                 else
                 {
-                    *coefAdress +=  difference;
+                    *coefPtr +=  difference;
                 }
             }
             else
             {
-                *coefAdress += difference;
+                *coefPtr += difference;
             }
             count += (shift + 1);
             shift = 0;
@@ -232,15 +232,15 @@ int ParseToCoef (char EntPart [], struct Polinomial *parsPol)
         else //x или x^2 без коэффициента (+x = +1x)
         {
             isX = EntPart [(count)]; //х или не х
-            isExp = EntPart [(count + 1)]; //^ или не ^
-            double *coefAdress = ChooseCoef (isX, isExp, &(*parsPol).aP, &(*parsPol).bP, &(*parsPol).cP, &isA);
+            isPow = EntPart [(count + 1)]; //^ или не ^
+            double *coefAdress = ChooseCoef (isX, isPow, &(*parsPol).aP, &(*parsPol).bP, &(*parsPol).cP, &isA);
 
             if (isA)
             {
                 EntPart [(count + 2)] = 'w';
             }
 
-            *coefAdress += (*parsPol).Sign;
+            *coefAdress += 1;
             count++;
             nParsedCoef++;
             isA = 0;
@@ -288,25 +288,21 @@ double ParseNum (char Part [], int count, int *shift)
 
 
 //выбор считываемого коэфиициента
-double* ChooseCoef (char isX, char isExp, double *a, double *b, double *c, int *isA)
+double* ChooseCoef (char isX, char isPow, double *a, double *b, double *c, int *isA)
 {
     assert (a != NULL);
     assert (b != NULL);
     assert (c != NULL);
     assert (isA != NULL);
     assert (*isA == 0);
+    assert (!isdigit (isPow));
 
     if (isX == 'x')
     {
-        if (isExp == '^')
+        if (isPow == '^')
         {
             *isA = 1;
             return a;
-        }
-        if (isdigit (isExp))
-        {
-            printf (RED"ERROR! Wrong symbol after x"RESET);
-            abort ();
         }
         return b;
     }
