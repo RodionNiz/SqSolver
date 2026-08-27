@@ -90,7 +90,7 @@ int Menu ()
         
         if (!(scanf ("%d", &mode)))
         {
-            printf (RED"INPUT ERROR!\n"RESET);
+            printf (RED "INPUT ERROR!\n" RESET);
             return InputErr;
         }
 
@@ -101,7 +101,7 @@ int Menu ()
             
             if (!(scanf ("%d", &repeats)))
             {
-                printf (RED"INPUT ERROR!\n"RESET);
+                printf (RED "INPUT ERROR!\n" RESET);
                 return InputErr;
             }
             if (!RunTestSolveAuto (repeats, mode))
@@ -120,7 +120,7 @@ int Menu ()
         }
         else 
         {
-            printf ("INPUT ERROR!\n"RESET);
+            printf (RED "INPUT ERROR!\n" RESET);
             return InputErr;
         }
         break;
@@ -132,7 +132,7 @@ int Menu ()
         return 1;
         break;
     default:
-        printf (RED"INPUT ERROR!\n"RESET);
+        printf (RED "INPUT ERROR!\n" RESET);
         return InputErr;
         break;
     }
