@@ -8,7 +8,7 @@
 
 int ReadInputBuffer (double *a, double *b, double *c)
 {
-    printf ("Enter equation like\n0.0x^2 + 0.0x + 0 = 0.0x^2 + 0.0x + 0\n\n"); //запрос ввода
+    printf ("Enter equation like\n1.2x^2 + 3.4x + 5 = 6.7x^2 + 8.9x + 0\n\n"); //запрос ввода
 
     char inString [InputStrLen];
 
@@ -26,12 +26,12 @@ int ReadInputBuffer (double *a, double *b, double *c)
         {
             if (isFirst != 0)
             {
-                printf (RED"ERROR! Unsupported symbol \'%c\' after %c"RESET, tempChar, inString [count]);
+                printf (RED "ERROR! Unsupported symbol \'%c\' after %c" RESET, tempChar, inString [count]);
                 return -1;
             }
             else
             {
-                printf (RED"ERROR! First symbol is unsupported"RESET);
+                printf (RED "ERROR! First symbol is unsupported" RESET);
             }
         }
         inString [count] = tempChar;
@@ -105,7 +105,7 @@ int DeleteSpace (char String [])
                 if ((cBeforeSpace != '-' && cBeforeSpace != '+' && cBeforeSpace != '=') &&                  //проверка на отсутствие знака
                    (cAfterSpace != '-' && cAfterSpace != '+' && cAfterSpace != '=' && cAfterSpace != 0))
                 {
-                    printf (RED"ERROR! No sign after \'%c\', before \'%c\'"RESET, cBeforeSpace, cAfterSpace);
+                    printf (RED "ERROR! No sign after \'%c\', before \'%c\'" RESET, cBeforeSpace, cAfterSpace);
                     return 0;
                 }
                 else
