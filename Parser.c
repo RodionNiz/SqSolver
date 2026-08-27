@@ -50,7 +50,6 @@ int ParseMain (double *a, double *b, double *c, char inString [])
     assert (a != NULL);
     assert (b != NULL);
     assert (c != NULL);
-
     
     char lEntPart [20];
     char rEntPart [20];
@@ -95,16 +94,14 @@ int DeliteSpase (char String [])
     {
         if (String [countInString] == ' ')
         {
-            if (countOutString != 0)
+            if (countOutString != 0) //если пробел не ведущий
             {
                 cBeforeSpace = String [countOutString - 1];
-                while (String [countInString] == ' ')
+                while (String [countInString] == ' ') //удаление идущих подряд пробелов
                 {
                     countInString++;
                 }
                 cAfterSpace = String [countInString];
-                
-                printf ("char is \'%c\', countsring is %d \n", cAfterSpace, countInString);
                 if ((cBeforeSpace != '-' && cBeforeSpace != '+' && cBeforeSpace != '=') &&                  //проверка на отсутствие знака
                    (cAfterSpace != '-' && cAfterSpace != '+' && cAfterSpace != '=' && cAfterSpace != 0))
                 {
@@ -123,11 +120,12 @@ int DeliteSpase (char String [])
                 countInString++;
             }
         }
-        else 
+        else //сохранение всего кроме символа ' '
         {
             String [countOutString] = String [countInString];
             countInString++;
             countOutString++;
+           
         }
     }
     String [countOutString] = 0;
@@ -191,11 +189,11 @@ int ParseToCoef (char EntPart [], struct Polinomial *parsPol)
 
     while (EntPart [count] != 0)     
     { 
-        if (!isdigit(EntPart [count]) && EntPart [count] != 'x')
+        if (!isdigit (EntPart [count]) && EntPart [count] != 'x')
         {
             count++;
         }
-        else if (isdigit(EntPart [count]))
+        else if (isdigit (EntPart [count]))
         {
             double parsedDouble = ParseNum (EntPart, count, &shift);
             count += shift;
@@ -253,7 +251,7 @@ int ParseToCoef (char EntPart [], struct Polinomial *parsPol)
 
 
 //парсинг цифр, запись значения в коэффициенты
-double ParseNum ( char Part [], int count, int *shift)
+double ParseNum (char Part [], int count, int *shift)
 {
     assert (shift != NULL);
     assert (Part != 0);
