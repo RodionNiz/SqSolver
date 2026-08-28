@@ -2,7 +2,7 @@
 
 #define STRUCT_POL
 
-struct Polinomial //cringenaming
+struct Polynomial //cringenaming
 {
     double aP, bP, cP;
     double x1, x2;

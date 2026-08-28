@@ -5,40 +5,41 @@
 #include <stdlib.h>
 
 //
-int TestSolve (struct Polinomial testPolRef)
+int TestSolve (struct Polynomial testPolyRef)
 {
-    struct Polinomial testPol = {.aP = testPolRef.aP, .bP = testPolRef.bP, .cP = testPolRef.cP};
-    testPol.nOfSol = SolveKv (testPol.aP, testPol.bP, testPol.cP, &testPol.x1, &testPol.x2);
-    if (testPolRef.nOfSol == 2 &&                                                                   //проверка правильности 2 корней
-        (CheckX (testPol.x1, testPolRef.aP, testPolRef.bP, testPolRef.cP) ||
-        CheckX (testPol.x2, testPolRef.aP, testPolRef.bP, testPolRef.cP)) &&
-        testPolRef.nOfSol == testPol.nOfSol)
+    struct Polynomial testPoly = {.aP = testPolyRef.aP, .bP = testPolyRef.bP, .cP = testPolyRef.cP};
+    testPoly.nOfSol = SolveKv (testPoly.aP, testPoly.bP, testPoly.cP, &testPoly.x1, &testPoly.x2);
+    if (testPolyRef.nOfSol == 2 &&                                                                   //проверка правильности 2 корней
+       (CheckX (testPoly.x1, testPolyRef.aP, testPolyRef.bP, testPolyRef.cP) ||
+        CheckX (testPoly.x2, testPolyRef.aP, testPolyRef.bP, testPolyRef.cP)) &&
+        testPolyRef.nOfSol == testPoly.nOfSol)
     {
         printf (RED "Test FAILED! Wrong answer!:\n" RESET
                 "a = " RED "%lg, " RESET "b = " RED "%lg, " RESET "c = " RED "%lg" RESET "\n"
                 "got: numOfSol = " RED "%d, " RESET "x1 = " RED "%lg, " RESET "x2 = " RED "%lg\n" RESET
-                , testPolRef.aP, testPolRef.bP, testPolRef.cP, testPol.nOfSol, testPol.x1, testPol.x2);
+                , testPolyRef.aP, testPolyRef.bP, testPolyRef.cP, testPoly.nOfSol, testPoly.x1, testPoly.x2);
         return 1;
     }
-    if (CheckX (testPol.x1, testPolRef.aP, testPolRef.bP, testPolRef.cP) && testPolRef.nOfSol == 1 && testPolRef.nOfSol == testPol.nOfSol)
+    if (CheckX (testPoly.x1, testPolyRef.aP, testPolyRef.bP, testPolyRef.cP) &&
+                testPolyRef.nOfSol == 1 && testPolyRef.nOfSol == testPoly.nOfSol)
     {                                                                                              //проверка правильности одного корня
         printf (RED "Test FAILED! Wrong answer!:\n" RESET
                 "a = " RED "%lg, " RESET "b = " RED "%lg, " RESET "c = " RED "%lg" RESET "\n"
                 "got: numOfSol = " RED "%d, " RESET "x1 = " RED "%lg, " RESET "x2 = " RED "%lg\n" RESET
-                , testPolRef.aP, testPolRef.bP, testPolRef.cP, testPol.nOfSol, testPol.x1, testPol.x2);
+                , testPolyRef.aP, testPolyRef.bP, testPolyRef.cP, testPoly.nOfSol, testPoly.x1, testPoly.x2);
         return 1;
     }
-    else if (testPolRef.nOfSol == 0 && testPolRef.nOfSol == testPol.nOfSol)                       //случай без корней
+    else if (testPolyRef.nOfSol == 0 && testPolyRef.nOfSol == testPoly.nOfSol)                       //случай без корней
     {
         printf (GREEN"Test PASSED\n" RESET);
         return 0;
     }
-    else if (testPolRef.nOfSol != testPol.nOfSol)                                                 //ошибка при несовпадении колва корней
+    else if (testPolyRef.nOfSol != testPoly.nOfSol)                                                 //ошибка при несовпадении колва корней
     {
         printf (RED "Test FAILED! Wrong nOfSol:\n" RESET
                 "a = " RED "%lg, " RESET "b = " RED "%lg, " RESET "c = " RED "%lg" RESET "\n"
                 "got: numOfSol = " RED "%d, " RESET "expected: numOfSOl = " RED "%d\n"  RESET
-                , testPolRef.aP, testPolRef.bP, testPolRef.cP, testPol.nOfSol, testPolRef.nOfSol);
+                , testPolyRef.aP, testPolyRef.bP, testPolyRef.cP, testPoly.nOfSol, testPolyRef.nOfSol);
         return 1;
     }
     printf (GREEN"Test PASSED\n" RESET);
@@ -56,51 +57,51 @@ int CheckX (double x, double a, double b, double c)
 int RunTestSolveAuto (int repeats, int kindOfTest)
 {   
     int countFail = 0;
-    struct Polinomial testPolRef; /////////////////////////////////////////////////////////////
+    struct Polynomial testPolyRef; /////////////////////////////////////////////////////////////
     switch (kindOfTest)
     {
     case SqNoRoots:
         while (repeats)
         {
-            testPolRef.nOfSol = 0;
-            GenerateNoRootsTest (&testPolRef.aP, &testPolRef.bP, &testPolRef.cP);
-            countFail += TestSolve (testPolRef);
+            testPolyRef.nOfSol = 0;
+            GenerateNoRootsTest (&testPolyRef.aP, &testPolyRef.bP, &testPolyRef.cP);
+            countFail += TestSolve (testPolyRef);
             --repeats;
         }
         break;
     case SqOneRoot:
         while (repeats)
         {
-            testPolRef.nOfSol = 1;
-            GenerateOneRootTest (&testPolRef.aP, &testPolRef.bP, &testPolRef.cP);
-            countFail += TestSolve (testPolRef);
+            testPolyRef.nOfSol = 1;
+            GenerateOneRootTest (&testPolyRef.aP, &testPolyRef.bP, &testPolyRef.cP);
+            countFail += TestSolve (testPolyRef);
             --repeats;
         }
         break;
     case SqTwoRoots:
         while (repeats)
         {
-            testPolRef.nOfSol = 2;
-            GenerateTwoRootsTest (&testPolRef.aP, &testPolRef.bP, &testPolRef.cP);
-            countFail += TestSolve (testPolRef);
+            testPolyRef.nOfSol = 2;
+            GenerateTwoRootsTest (&testPolyRef.aP, &testPolyRef.bP, &testPolyRef.cP);
+            countFail += TestSolve (testPolyRef);
             --repeats;
         }
         break;
     case LnOneRoot:
         while (repeats)
         {
-            testPolRef.nOfSol = 1;
-            GenerateOneRootsTestLinear (&testPolRef.aP, &testPolRef.bP, &testPolRef.cP);
-            countFail += TestSolve (testPolRef);
+            testPolyRef.nOfSol = 1;
+            GenerateOneRootsTestLinear (&testPolyRef.aP, &testPolyRef.bP, &testPolyRef.cP);
+            countFail += TestSolve (testPolyRef);
             --repeats;
         }
         break;
     case LnNoRoot:
         while (repeats)
         {
-            testPolRef.nOfSol = 0;
-            GenerateNoRootsTestLinear (&testPolRef.aP, &testPolRef.bP, &testPolRef.cP);
-            countFail += TestSolve (testPolRef);
+            testPolyRef.nOfSol = 0;
+            GenerateNoRootsTestLinear (&testPolyRef.aP, &testPolyRef.bP, &testPolyRef.cP);
+            countFail += TestSolve (testPolyRef);
             --repeats;
         }
         break;
@@ -113,16 +114,16 @@ int RunTestSolveAuto (int repeats, int kindOfTest)
 int RunTestSolveManual ()
 {
     int countFail = 0;
-    struct Polinomial testsPolinomsRef [3] = 
+    struct Polynomial testsPolynomsRef [3] = 
     {
         {.aP = 1, .bP = 2.2, .cP = 1.21, .nOfSol = 1},
         {.aP = 0, .bP = 0, .cP = 0, .nOfSol = -1}, /////////////////////////////////////////////////InfSol
         {.aP = 0, .bP = 0, .cP = 1, .nOfSol = 0}
     };
-    unsigned int size = sizeof (testsPolinomsRef) / sizeof (struct Polinomial);
+    unsigned int size = sizeof (testsPolynomsRef) / sizeof (struct Polynomial);
     for (unsigned int i = 0; i < size; i++)
     {
-        countFail += TestSolve (testsPolinomsRef [0]);
+        countFail += TestSolve (testsPolynomsRef [0]);
     }
     return countFail;
 }

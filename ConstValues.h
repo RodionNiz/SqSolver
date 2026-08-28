@@ -1,15 +1,16 @@
 #ifndef DEFS
-
 #define DEFS
 
 #define RED     "\033[31m"
 #define RESET   "\033[0m"
 #define GREEN   "\033[32m"
 
-#define ACCURACY 0.0001
+static const double ACCURACY = 0.0001;
 
 enum modeOfTestSolve
 {
+    AutoTests = -2,
+    ERROR = -1,
     SqNoRoots = 0,
     SqOneRoot = 1,
     SqTwoRoots = 2,
@@ -20,6 +21,7 @@ enum modeOfTestSolve
 
 enum modeOfWork
 {
+    ERROR = -1,
     SolveEqMod = 0,
     TestSolveMod = 1,
     TestParseMod = 2

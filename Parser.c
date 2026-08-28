@@ -54,28 +54,23 @@ int ParseMain (double *a, double *b, double *c, char inString [])
     char lEntPart [PoliStrLen];
     char rEntPart [PoliStrLen];
     int nParsedCoef = 0;
-    
-    //ReadInputBuffer (inString);  //считывание строки из буффера ввода
 
     if (DeleteSpace (inString) == 0)    //удаление пробелов, проверка корректности ввода
     {
         abort ();
-        return 0;
     } 
 
     SeparatePol (inString, lEntPart, rEntPart); //разделение выражения на части до и после '='
 
+    struct Polynomial leftPoly = {.aP = 0, .bP = 0, .cP = 0};
+    struct Polynomial rightPoly = {.aP = 0, .bP = 0, .cP = 0};
 
-    struct Polinomial leftPol = {.aP = 0, .bP = 0, .cP = 0};
-    struct Polinomial rightPol = {.aP = 0, .bP = 0, .cP = 0};
-
-    nParsedCoef += ParseToCoef (lEntPart, &leftPol);
-    nParsedCoef += ParseToCoef (rEntPart, &rightPol);
+    nParsedCoef += ParseToCoef (lEntPart, &leftPoly.aP, &leftPoly.bP, &leftPoly.cP);
+    nParsedCoef += ParseToCoef (rEntPart, &rightPoly.aP, &rightPoly.bP, &rightPoly.cP);
     
-    *a = leftPol.aP - rightPol.aP;
-    *b = leftPol.bP - rightPol.bP;
-    *c = leftPol.cP - rightPol.cP;
-
+    *a = leftPoly.aP - rightPoly.aP;
+    *b = leftPoly.bP - rightPoly.bP;
+    *c = leftPoly.cP - rightPoly.cP;
 
     return nParsedCoef;
 }
@@ -103,7 +98,7 @@ int DeleteSpace (char String [])
                 }
                 cAfterSpace = String [countInString];
                 if ((cBeforeSpace != '-' && cBeforeSpace != '+' && cBeforeSpace != '=') &&                  //проверка на отсутствие знака
-                   (cAfterSpace != '-' && cAfterSpace != '+' && cAfterSpace != '=' && cAfterSpace != 0))
+                    (cAfterSpace  != '-' && cAfterSpace  != '+' && cAfterSpace  != '='  && cAfterSpace != 0))
                 {
                     printf (RED "ERROR! No sign after \'%c\', before \'%c\'" RESET, cBeforeSpace, cAfterSpace);
                     return 0;
@@ -125,7 +120,6 @@ int DeleteSpace (char String [])
             String [countOutString] = String [countInString];
             countInString++;
             countOutString++;
-           
         }
     }
     String [countOutString] = 0;
@@ -173,14 +167,16 @@ void SeparatePol (char inString [], char lEntPart [], char rEntPart [])
 
 
 //парсинг строки до появления цифры
-int ParseToCoef (char EntPart [], struct Polinomial *parsPol)
+int ParseToCoef (char EntPart [], double *a, double *b, double *c)
 {
-    assert (parsPol != NULL);
+    assert (a != NULL);
+    assert (b != NULL);
+    assert (c != NULL);
     assert (EntPart != NULL);
 
     int nParsedCoef = 0;
     int shift = 0;
-    int isA = 0; //1 - коэф а, 2 - коэф с
+    int isA = 0; 
 
     int count = 0;
     
@@ -199,7 +195,7 @@ int ParseToCoef (char EntPart [], struct Polinomial *parsPol)
             count += shift;
             isX = EntPart [(count)];        //х или не х
             isPow = EntPart [(count + 1)];  //^ или не ^
-            double *coefPtr = ChooseCoef (isX, isPow, &(*parsPol).aP, &(*parsPol).bP, &(*parsPol).cP, &isA);
+            double *coefPtr = ChooseCoef (isX, isPow, a, b, c, &isA);
 
             double difference = parsedDouble;
             if (isA == 1)                   //смена x^2 на x^w для избежания ошибок парсинга
@@ -233,7 +229,7 @@ int ParseToCoef (char EntPart [], struct Polinomial *parsPol)
         {
             isX = EntPart [(count)]; //х или не х
             isPow = EntPart [(count + 1)]; //^ или не ^
-            double *coefAdress = ChooseCoef (isX, isPow, &(*parsPol).aP, &(*parsPol).bP, &(*parsPol).cP, &isA);
+            double *coefAdress = ChooseCoef (isX, isPow, a, b, c, &isA);
 
             if (isA)
             {

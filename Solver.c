@@ -1,10 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <string.h>
-#include <ctype.h>
-#include <math.h>
-
 #include "Solver.h"
 
 //поиск корня в случае нулевого старшего коэффициента квадратного уравнения
@@ -52,11 +45,17 @@ int SolveKv (double a, double b, double c, double *x1, double *x2)
         return 1;
     }
 
-    if (discriminant > ACCURACY)
+    if (discriminant > 0)
     {
         *x1 = (-b - sqrt(discriminant)) / a2;    //корни уравнения с D > 0
         *x2 = (-b + sqrt(discriminant)) / a2;
         return 2;
     }
     return 0;                   //случай с отсутствием действительных корней 
+}
+
+//1 если ноль, 0 если не 0
+int IsDoubleZero (double iszero)
+{
+    return (fabs (iszero) < ACCURACY);
 }
