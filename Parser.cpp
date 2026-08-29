@@ -1,4 +1,4 @@
-#include "StructPol.h"
+#include "StructPoly.h"
 #include "Parser.h"
 
 #include <assert.h>
@@ -6,9 +6,9 @@
 #include <ctype.h>
 
 
-int ReadInputBuffer (double *a, double *b, double *c)
+int ParseInputCoef (double *a, double *b, double *c)
 {
-    printf ("Enter equation like\n1.2x^2 + 3.4x + 5 = 6.7x^2 + 8.9x + 0\n\n"); //запрос ввода
+    printf ("Enter equation like\n1.2x^2 + 3.4x + 5 = 6.7x^2 + 8.9x + 0\n\n");
 
     char inString [InputStrLen];
 
@@ -17,9 +17,10 @@ int ReadInputBuffer (double *a, double *b, double *c)
     assert (c != NULL);
 
     int tempChar = getchar ();
-    int count = 0;
+    unsigned int count = 0;
     int isFirst = 0;
     const char *allowed = "0123456789.,x^=+- ";
+
     while (tempChar != EOF && tempChar != '\n' && tempChar != 0)
     {
         if (strchr (allowed, tempChar) == NULL)
@@ -27,13 +28,16 @@ int ReadInputBuffer (double *a, double *b, double *c)
             if (isFirst != 0)
             {
                 printf (RED "ERROR! Unsupported symbol \'%c\' after %c" RESET, tempChar, inString [count]);
-                return -1;
             }
+
             else
             {
                 printf (RED "ERROR! First symbol is unsupported" RESET);
             }
+
+            return -1;
         }
+
         inString [count] = tempChar;
         inString [count + 1] = 0;
         isFirst++;
@@ -51,22 +55,22 @@ int ParseMain (double *a, double *b, double *c, char inString [])
     assert (b != NULL);
     assert (c != NULL);
     
-    char lEntPart [PoliStrLen];
-    char rEntPart [PoliStrLen];
+    char leftPart [PolyStrLen];
+    char rightPart [PolyStrLen];
     int nParsedCoef = 0;
 
-    if (DeleteSpace (inString) == 0)    //удаление пробелов, проверка корректности ввода
+    if (DeleteSpace (inString) == 0)
     {
         abort ();
     } 
 
-    SeparatePol (inString, lEntPart, rEntPart); //разделение выражения на части до и после '='
+    SeparateEq (inString, leftPart, rightPart);
 
     struct Polynomial leftPoly = {.aP = 0, .bP = 0, .cP = 0};
     struct Polynomial rightPoly = {.aP = 0, .bP = 0, .cP = 0};
 
-    nParsedCoef += ParseToCoef (lEntPart, &leftPoly.aP, &leftPoly.bP, &leftPoly.cP);
-    nParsedCoef += ParseToCoef (rEntPart, &rightPoly.aP, &rightPoly.bP, &rightPoly.cP);
+    nParsedCoef += ParseToCoef (leftPart,  &leftPoly.aP,  &leftPoly.bP,  &leftPoly.cP);
+    nParsedCoef += ParseToCoef (rightPart, &rightPoly.aP, &rightPoly.bP, &rightPoly.cP);
     
     *a = leftPoly.aP - rightPoly.aP;
     *b = leftPoly.bP - rightPoly.bP;
@@ -75,90 +79,97 @@ int ParseMain (double *a, double *b, double *c, char inString [])
     return nParsedCoef;
 }
 
-//удаление пробелов, проверка ошибок ввода
+
 int DeleteSpace (char String [])
 {
     assert (String != NULL);
 
-    int countInString = 0;
-    int countOutString = 0;
+    unsigned int countIn = 0;
+    unsigned int countOut = 0;
     char cBeforeSpace = '0';
     char cAfterSpace = '0';
 
-    while (String [countInString] != 0)
+    while (String [countIn] != 0)
     {
-        if (String [countInString] == ' ')
+        if (String [countIn] == ' ')
         {
-            if (countOutString != 0) //если пробел не ведущий
+            if (countOut != 0) //если пробел не ведущий
             {
-                cBeforeSpace = String [countOutString - 1];
-                while (String [countInString] == ' ') //удаление идущих подряд пробелов
+                cBeforeSpace = String [countOut - 1];
+                
+                while (String [countIn] == ' ') //удаление идущих подряд пробелов
                 {
-                    countInString++;
+                    countIn++;
                 }
-                cAfterSpace = String [countInString];
-                if ((cBeforeSpace != '-' && cBeforeSpace != '+' && cBeforeSpace != '=') &&                  //проверка на отсутствие знака
+
+                cAfterSpace = String [countIn];
+
+                if ((cBeforeSpace != '-' && cBeforeSpace != '+' && cBeforeSpace != '=') &&    //проверка на отсутствие знака
                     (cAfterSpace  != '-' && cAfterSpace  != '+' && cAfterSpace  != '='  && cAfterSpace != 0))
                 {
                     printf (RED "ERROR! No sign after \'%c\', before \'%c\'" RESET, cBeforeSpace, cAfterSpace);
                     return 0;
                 }
+                
                 else
                 {
-                    String [countOutString] = String [countInString];
-                    countInString++;
-                    countOutString++;
+                    String [countOut] = String [countIn];
+                    countIn++;
+                    countOut++;
                 }
             } 
+
             else //удаление ведущих пробелов
             {
-                countInString++;
+                countIn++;
             }
         }
-        else //сохранение всего кроме символа ' '
+
+        else
         {
-            String [countOutString] = String [countInString];
-            countInString++;
-            countOutString++;
+            String [countOut] = String [countIn];
+            countIn++;
+            countOut++;
         }
     }
-    String [countOutString] = 0;
+    
+    String [countOut] = 0;
     return 1;
 }
 
 
-
-//разделение на левую и правую часть
-void SeparatePol (char inString [], char lEntPart [], char rEntPart [])
+void SeparateEq (char inString [], char leftPart [], char rightPart [])
 {
     assert (inString != NULL);
-    assert (lEntPart != NULL);
-    assert (rEntPart != NULL);
+    assert (leftPart != NULL);
+    assert (rightPart != NULL);
 
-    int partFlag = 0;
-    int countIn = 0;
-    int countOut = 0;
+    int isLeft = 1;
+    unsigned int countIn = 0;
+    unsigned int countOut = 0;
     
     while (inString [countIn] != 0)
     {
-        if (!partFlag)
-        {   if (inString [countIn] != '=')
+        if (isLeft)
+        {   
+            if (inString [countIn] != '=')
             {
-                lEntPart [countOut] = inString [countIn];
-                lEntPart [(countOut + 1)] = 0;
+                leftPart [countOut] = inString [countIn];
+                rightPart [(countOut + 1)] = 0;
                 countIn++;
                 countOut++;
             }
+
             else
             {
-                partFlag = 1;
+                isLeft = 0;
                 countOut = 0;
             }
         }
         else
         {
-            rEntPart [countOut] = inString [countIn + 1];
-            rEntPart [(countOut + 1)] = 0;
+            rightPart [countOut] = inString [countIn + 1];
+            rightPart [(countOut + 1)] = 0;
             countIn++;
             countOut++;
         }
@@ -166,77 +177,84 @@ void SeparatePol (char inString [], char lEntPart [], char rEntPart [])
 }
 
 
-//парсинг строки до появления цифры
-int ParseToCoef (char EntPart [], double *a, double *b, double *c)
+int ParseToCoef (char Part [], double *a, double *b, double *c)
 {
     assert (a != NULL);
     assert (b != NULL);
     assert (c != NULL);
-    assert (EntPart != NULL);
+    assert (Part != NULL);
 
     int nParsedCoef = 0;
     int shift = 0;
     int isA = 0; 
 
-    int count = 0;
+    unsigned int count = 0;
     
-    char isX = ' ';
-    char isPow = ' ';
+    char isX = 0;
+    char isPow = 0;
 
-    while (EntPart [count] != 0)     
+    while (Part [count] != 0)     
     { 
-        if (!isdigit (EntPart [count]) && EntPart [count] != 'x')
+        if (!isdigit (Part [count]) && Part [count] != 'x')
         {
             count++;
         }
-        else if (isdigit (EntPart [count]))
+
+        else if (isdigit (Part [count]))
         {
-            double parsedDouble = ParseNum (EntPart, count, &shift);
+            double difference = ParseNum (Part, count, &shift);
+
             count += shift;
-            isX = EntPart [(count)];        //х или не х
-            isPow = EntPart [(count + 1)];  //^ или не ^
+            isX = Part [(count)];
+            isPow = Part [(count + 1)];
+
             double *coefPtr = ChooseCoef (isX, isPow, a, b, c, &isA);
 
-            double difference = parsedDouble;
-            if (isA == 1)                   //смена x^2 на x^w для избежания ошибок парсинга
+            if (isA == 1)  //смена x^2 на x^w для избежания ошибок парсинга
             {
-                EntPart [(count + 2)] = 'w';
+                Part [(count + 2)] = 'w';
             }
+
             count -= shift;
 
             if (count > 0)
             {
                 //выбор знака
-                if (EntPart [(count - 1)] == '-')
+                if (Part [(count - 1)] == '-')
                 {   
                     *coefPtr -= difference;
                 }
+
                 else
                 {
                     *coefPtr +=  difference;
                 }
             }
+
             else
             {
                 *coefPtr += difference;
             }
+
             count += (shift + 1);
             shift = 0;
             nParsedCoef++;
             isA = 0;
         }
+
         else //x или x^2 без коэффициента (+x = +1x)
         {
-            isX = EntPart [(count)]; //х или не х
-            isPow = EntPart [(count + 1)]; //^ или не ^
-            double *coefAdress = ChooseCoef (isX, isPow, a, b, c, &isA);
+            isX = Part [(count)];
+            isPow = Part [(count + 1)];
+
+            double *coefPtr = ChooseCoef (isX, isPow, a, b, c, &isA);
 
             if (isA)
             {
-                EntPart [(count + 2)] = 'w';
+                Part [(count + 2)] = 'w';
             }
 
-            *coefAdress += 1;
+            *coefPtr += 1;
             count++;
             nParsedCoef++;
             isA = 0;
@@ -246,20 +264,19 @@ int ParseToCoef (char EntPart [], double *a, double *b, double *c)
 }
 
 
-//парсинг цифр, запись значения в коэффициенты
 double ParseNum (char Part [], int count, int *shift)
 {
     assert (shift != NULL);
     assert (Part != 0);
 
     double coef = 0;
-    int duCount = count;
+    unsigned int countCopy = count;
     int place = -1;
 
-    while (isdigit (Part [duCount])) //определение разряда первой цифры коэффициента
+    while (isdigit (Part [countCopy]))
     {
         place++;
-        duCount++;
+        countCopy++;
     }
 
     double multiplier = pow (10, place);
@@ -271,6 +288,7 @@ double ParseNum (char Part [], int count, int *shift)
             ++count;
             ++*shift; 
         }
+        
         else
         {
             coef += (Part [count]  - '0') * multiplier;
@@ -279,11 +297,11 @@ double ParseNum (char Part [], int count, int *shift)
             multiplier /= 10;
         }
     }
+
     return coef;
 }
 
 
-//выбор считываемого коэфиициента
 double* ChooseCoef (char isX, char isPow, double *a, double *b, double *c, int *isA)
 {
     assert (a != NULL);
@@ -291,18 +309,20 @@ double* ChooseCoef (char isX, char isPow, double *a, double *b, double *c, int *
     assert (c != NULL);
     assert (isA != NULL);
     assert (*isA == 0);
-    
 
     if (isX == 'x')
     {
         assert (!isdigit (isPow));
+
         if (isPow == '^')
         {
             *isA = 1;
             return a;
         }
+
         return b;
     }
+
     else
     {
         return c;

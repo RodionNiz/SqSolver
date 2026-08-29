@@ -1,0 +1,10 @@
+*.html
+*.png
+*.css
+*.js
+*.tex
+*.svg
+*.sty
+*.bat
+latex/Makefile
+vc140.pdb

@@ -1,5 +1,5 @@
-#include "SqTests.h"
-#include "StructPol.h"
+#include "TestSolver.h"
+#include "StructPoly.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,8 +8,10 @@
 int TestSolve (struct Polynomial testPolyRef)
 {
     struct Polynomial testPoly = {.aP = testPolyRef.aP, .bP = testPolyRef.bP, .cP = testPolyRef.cP};
-    testPoly.nOfSol = SolveKv (testPoly.aP, testPoly.bP, testPoly.cP, &testPoly.x1, &testPoly.x2);
-    if (testPolyRef.nOfSol == 2 &&                                                                   //проверка правильности 2 корней
+
+    testPoly.nOfSol = SolveQuadratic (testPoly.aP, testPoly.bP, testPoly.cP, &testPoly.x1, &testPoly.x2);
+
+    if (testPolyRef.nOfSol == 2 &&
        (CheckX (testPoly.x1, testPolyRef.aP, testPolyRef.bP, testPolyRef.cP) ||
         CheckX (testPoly.x2, testPolyRef.aP, testPolyRef.bP, testPolyRef.cP)) &&
         testPolyRef.nOfSol == testPoly.nOfSol)
@@ -20,21 +22,24 @@ int TestSolve (struct Polynomial testPolyRef)
                 , testPolyRef.aP, testPolyRef.bP, testPolyRef.cP, testPoly.nOfSol, testPoly.x1, testPoly.x2);
         return 1;
     }
+
     if (CheckX (testPoly.x1, testPolyRef.aP, testPolyRef.bP, testPolyRef.cP) &&
                 testPolyRef.nOfSol == 1 && testPolyRef.nOfSol == testPoly.nOfSol)
-    {                                                                                              //проверка правильности одного корня
+    {
         printf (RED "Test FAILED! Wrong answer!:\n" RESET
                 "a = " RED "%lg, " RESET "b = " RED "%lg, " RESET "c = " RED "%lg" RESET "\n"
                 "got: numOfSol = " RED "%d, " RESET "x1 = " RED "%lg, " RESET "x2 = " RED "%lg\n" RESET
                 , testPolyRef.aP, testPolyRef.bP, testPolyRef.cP, testPoly.nOfSol, testPoly.x1, testPoly.x2);
         return 1;
     }
-    else if (testPolyRef.nOfSol == 0 && testPolyRef.nOfSol == testPoly.nOfSol)                       //случай без корней
+
+    else if (testPolyRef.nOfSol == 0 && testPolyRef.nOfSol == testPoly.nOfSol)
     {
         printf (GREEN"Test PASSED\n" RESET);
         return 0;
     }
-    else if (testPolyRef.nOfSol != testPoly.nOfSol)                                                 //ошибка при несовпадении колва корней
+
+    else if (testPolyRef.nOfSol != testPoly.nOfSol)
     {
         printf (RED "Test FAILED! Wrong nOfSol:\n" RESET
                 "a = " RED "%lg, " RESET "b = " RED "%lg, " RESET "c = " RED "%lg" RESET "\n"
@@ -42,12 +47,12 @@ int TestSolve (struct Polynomial testPolyRef)
                 , testPolyRef.aP, testPolyRef.bP, testPolyRef.cP, testPoly.nOfSol, testPolyRef.nOfSol);
         return 1;
     }
+
     printf (GREEN"Test PASSED\n" RESET);
     return 0;
 }
 
 
-//проверка правильности корня, 0 если корень верный, 1 если неверный
 int CheckX (double x, double a, double b, double c)
 {
     return !IsDoubleZero (a * x * x + b * x + c);
@@ -57,7 +62,10 @@ int CheckX (double x, double a, double b, double c)
 int RunTestSolveAuto (int repeats, int kindOfTest)
 {   
     int countFail = 0;
-    struct Polynomial testPolyRef; /////////////////////////////////////////////////////////////
+    struct Polynomial testPolyRef;
+
+    srand (time (NULL));
+
     switch (kindOfTest)
     {
     case SqNoRoots:
@@ -69,6 +77,7 @@ int RunTestSolveAuto (int repeats, int kindOfTest)
             --repeats;
         }
         break;
+
     case SqOneRoot:
         while (repeats)
         {
@@ -78,6 +87,7 @@ int RunTestSolveAuto (int repeats, int kindOfTest)
             --repeats;
         }
         break;
+
     case SqTwoRoots:
         while (repeats)
         {
@@ -87,6 +97,7 @@ int RunTestSolveAuto (int repeats, int kindOfTest)
             --repeats;
         }
         break;
+
     case LnOneRoot:
         while (repeats)
         {
@@ -96,6 +107,7 @@ int RunTestSolveAuto (int repeats, int kindOfTest)
             --repeats;
         }
         break;
+
     case LnNoRoot:
         while (repeats)
         {
@@ -114,17 +126,24 @@ int RunTestSolveAuto (int repeats, int kindOfTest)
 int RunTestSolveManual ()
 {
     int countFail = 0;
-    struct Polynomial testsPolynomsRef [3] = 
+
+    struct Polynomial testsPolynomsRef [] = 
     {
-        {.aP = 1, .bP = 2.2, .cP = 1.21, .nOfSol = 1},
-        {.aP = 0, .bP = 0, .cP = 0, .nOfSol = -1}, /////////////////////////////////////////////////InfSol
-        {.aP = 0, .bP = 0, .cP = 1, .nOfSol = 0}
+        {.aP = 1,   .bP = 2.2,    .cP = 1.21, .nOfSol = 1},
+        {.aP = 0,   .bP = 0,      .cP = 0,    .nOfSol = InfSol},
+        {.aP = 0,   .bP = 0,      .cP = 1,    .nOfSol = 0},
+        {.aP = 0.1, .bP = -1.2,   .cP = 3.5,  .nOfSol = 2},
+        {.aP = 2.3, .bP = 0,      .cP = 0,    .nOfSol = 1},
+        {.aP = 1,   .bP = -4.001, .cP = 0,    .nOfSol = 2},
+        {.aP = 1,   .bP = -2.001, .cP = 1,    .nOfSol = 2}
     };
+
     unsigned int size = sizeof (testsPolynomsRef) / sizeof (struct Polynomial);
     for (unsigned int i = 0; i < size; i++)
     {
-        countFail += TestSolve (testsPolynomsRef [0]);
+        countFail += TestSolve (testsPolynomsRef [i]);
     }
+
     return countFail;
 }
 
@@ -138,7 +157,6 @@ double RandDouble ()
 }
 
 
-//генерация уравнения с 2 корнями
 void GenerateTwoRootsTest (double *a, double *b, double *c)
 {
     assert (a != NULL);
@@ -148,14 +166,13 @@ void GenerateTwoRootsTest (double *a, double *b, double *c)
     double x1Ref = RandDouble ();
     double x2Ref = RandDouble ();
     double aRef = RandDouble ();
-
+    
     *a = aRef;
     *b = -aRef * (x1Ref+x2Ref);
     *c = aRef * x1Ref * x2Ref;
 }
 
 
-//генерация уравнения с 1 корнем и а != 0
 void GenerateOneRootTest (double *a, double *b, double *c)
 {
     assert (a != NULL);
@@ -170,7 +187,7 @@ void GenerateOneRootTest (double *a, double *b, double *c)
     *c = aRef * x1Ref * x1Ref;
 }
 
-//генерация трехчлена без корней
+
 void GenerateNoRootsTest (double *a, double *b, double *c)
 {
     assert (a != NULL);
@@ -192,7 +209,6 @@ void GenerateNoRootsTest (double *a, double *b, double *c)
 }
 
 
-//генерация линейного уравнения с 1 корнем
 void GenerateNoRootsTestLinear (double *a, double *b, double *c)
 {
     assert (a != NULL);
@@ -204,7 +220,7 @@ void GenerateNoRootsTestLinear (double *a, double *b, double *c)
     *c = RandDouble ();
 }
 
-//генерация линейного уравнения без корней
+
 void GenerateOneRootsTestLinear (double *a, double *b, double *c)
 {
     assert (a != NULL);

@@ -1,7 +1,7 @@
-#include "TestParse.h"
+#include "TestParser.h"
 #include "Parser.h"
 
-int ParseTest (double aRef, double bRef, double cRef, char testString [])
+int ParseTest (double aRef, double bRef, double cRef, const char testString [])
 {
     assert (testString != NULL);
 
@@ -24,6 +24,7 @@ int ParseTest (double aRef, double bRef, double cRef, char testString [])
                 aRef, bRef, cRef, a, b, c);
         return 1;
     }
+    
     return 0;
 }
 
