@@ -27,9 +27,7 @@ enum nOfRoots
     TwoRoots = 2
 }; 
 
-/**
-    \brief Accyracy with which doubles are compared 
- */
+/*! Accyracy with which doubles are compared */
 static const double ACCURACY = 0.0001;
 
 /**

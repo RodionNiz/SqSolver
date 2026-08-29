@@ -6,14 +6,10 @@
 */
 
 #include "StructPoly.h"
-#include "Colors.h" 
-#include "Parser.h"      
+#include "Colors.h"  
 #include "Parser.cpp"
-#include "Solver.h"
-#include "Solver.cpp"
-#include "TestSolver.h"     
+#include "Solver.cpp"   
 #include "TestSolver.cpp"
-#include "TestParser.h"
 #include "TestParser.cpp"
 
 /**
@@ -54,8 +50,6 @@ void PrintStructPolynomial (struct Polynomial StructPoly);
 
 /**
     \brief Clean buffer from stdin
-
-
 */
 void BufferClean ();
 

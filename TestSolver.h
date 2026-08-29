@@ -56,8 +56,8 @@ int RunTestSolveAuto (int repeats, int kindOfTest);
 int RunTestSolveManual ();
 
 /**
-    \brief Generate a random double in a variable range
-    \returnrandom double 
+    \brief Generate a random double in a range from -5 to 15
+    \return random double 
  */
 double RandDouble ();
 
